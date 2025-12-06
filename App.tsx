@@ -26,6 +26,7 @@ import ShinyButton from './components/ui/ShinyButton';
 import TextReveal from './components/ui/TextReveal';
 import PageTransition from './components/ui/PageTransition';
 import { AnimatePresence, motion } from 'framer-motion';
+import GenerationVisuals from './components/ui/GenerationVisuals';
 
 const LOADING_MESSAGES = [
     "Orchestrating AI agents...",
@@ -82,6 +83,7 @@ const App = () => {
     const stopGeneration = useRef(false);
     const [isEnhancing, setIsEnhancing] = useState(false);
     const [actualProgress, setActualProgress] = useState(0); // Real progress 0-100
+    const [visualProgress, setVisualProgress] = useState(0); // Smoothed progress for UI
     const [elapsedTime, setElapsedTime] = useState(0); // Elapsed time in seconds
     const hasShownWelcome = useRef(false);
 
@@ -265,6 +267,45 @@ const App = () => {
         }
     }, [loadingStep]);
 
+    // Smooth Progress Effect
+    useEffect(() => {
+        if (loadingStep === LoadingStep.IDLE) {
+            setVisualProgress(0);
+            return;
+        }
+
+        // If actual progress jumps, we smoothly animate towards it
+        // We also want to "fake" some progress if it's stuck waiting for the next step
+        const interval = setInterval(() => {
+            setVisualProgress(current => {
+                const diff = actualProgress - current;
+
+                // If we are far behind actual, catch up faster
+                if (diff > 0) {
+                    // Catch up logic
+                    return current + Math.max(0.5, diff * 0.1);
+                }
+
+                // If we are at the actual progress, but waiting for next step,
+                // slowly creep up but don't exceed next milestone too much (e.g. don't go to 40 if at 20)
+                // Actually, the actualProgress is the "floor" of the current step.
+                // e.g. Step 1 done = 20%. We wait for Step 2.
+                // We can creep up to 35% maybe while waiting?
+                // Let's just strictly follow actualProgress for now but smooth the transition.
+                // Or better: Let's creep up to 'actualProgress + 15' while waiting.
+
+                const targetShadow = actualProgress + 18; // Don't hit the next 20% mark fully
+                if (current < targetShadow && loadingStep !== LoadingStep.COMPLETE) {
+                    return current + 0.05; // Very slow creep
+                }
+
+                return current;
+            });
+        }, 50);
+
+        return () => clearInterval(interval);
+    }, [actualProgress, loadingStep]);
+
     const loadHistory = async (userId: string) => {
         const projs = await getProjects(userId);
         setProjectsHistory(projs);
@@ -319,6 +360,7 @@ const App = () => {
 
         stopGeneration.current = false;
         setActualProgress(0); // Reset progress at start
+        setVisualProgress(0);
         setElapsedTime(0); // Reset elapsed time
         setLoadingStep(LoadingStep.ANALYZING);
         setChatOpen(false);
@@ -830,91 +872,92 @@ const App = () => {
                 <DotMapBackground />
 
                 {/* Main Card */}
-                <div className="relative z-10 flex flex-col items-center">
+                <div className="relative z-10 flex flex-col items-center w-full max-w-6xl px-4">
 
-                    {/* Central Loader Block */}
-                    <div className="w-[300px] h-[300px] flex flex-col items-center justify-center relative">
+                    {/* Content Row */}
+                    <div className="flex flex-col lg:flex-row items-center justify-center gap-12 w-full">
 
-                        {/* Spinner Ring */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-24 h-24 rounded-full border-2 border-white/5"></div>
+                        {/* LEFT: Visuals Carousel */}
+                        <div className="flex-shrink-0 relative z-20">
+                            <GenerationVisuals
+                                currentStep={Math.floor(visualProgress / 20)}
+                                stepId={loadingStep}
+                            />
                         </div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-24 h-24 rounded-full border-t-2 border-white animate-spin"></div>
+
+                        {/* RIGHT: Progress & Message */}
+                        <div className="flex flex-col items-center lg:items-start w-full max-w-[500px] relative z-20">
+
+                            {/* Message Heading */}
+                            <div className="text-center lg:text-left mb-6">
+                                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight">
+                                    {LOADING_MESSAGES[loadingMessageIndex]}
+                                </h3>
+                                <div className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                                    <p className="text-[10px] text-zinc-400 font-mono tracking-[0.2em] uppercase">
+                                        Orchestrating AI Agents...
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Reference-style Progress Card */}
+                            <div className="w-full bg-[#09090b] border border-zinc-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                                {/* Glossy top highlight */}
+                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+
+                                <div className="flex justify-between items-end mb-4">
+                                    <div>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest mb-1">Your Progress</p>
+                                        <h4 className="text-3xl font-bold text-white flex items-center gap-2">
+                                            {Math.min(100, Math.floor(visualProgress))}%
+                                            <span className="text-zinc-600 text-lg font-medium">Complete</span>
+                                        </h4>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-zinc-500 bg-zinc-900/50 px-3 py-1.5 rounded-lg border border-zinc-800/50">
+                                        <Clock size={12} />
+                                        <span className="text-xs font-mono">{elapsedTime}s Elapsed</span>
+                                    </div>
+                                </div>
+
+                                {/* Bar Container */}
+                                <div className="h-5 w-full bg-zinc-900/50 rounded-full overflow-hidden border border-zinc-800/50 p-[3px]">
+                                    {/* Blue bar with real progress */}
+                                    <div
+                                        className="h-full bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all duration-75 linear relative overflow-hidden"
+                                        style={{ width: `${Math.min(100, visualProgress)}%` }}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
+                                    </div>
+                                </div>
+
+                                {/* Step indicator */}
+                                <div className="mt-5 flex items-center justify-between text-[10px] text-zinc-500 font-medium uppercase tracking-wide">
+                                    <span>Step {Math.min(5, Math.floor(visualProgress / 20) + 1)} of 5</span>
+                                    <span className="text-zinc-400">{loadingStep}</span>
+                                </div>
+                            </div>
                         </div>
-
-                        {/* Central Dot */}
-                        <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse"></div>
-
                     </div>
 
-                    {/* Text Content */}
-                    <div className="text-center -mt-8 relative z-20">
-                        <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 tracking-tight text-center px-4">
-                            {LOADING_MESSAGES[loadingMessageIndex]}
-                        </h3>
-
-                        <div className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                            <p className="text-[10px] text-zinc-400 font-mono tracking-[0.2em] uppercase">
-                                Orchestrating AI Agents...
-                            </p>
-                        </div>
-
-
-
-                        {/* Reference-style Progress Card */}
-                        <div className="w-full max-w-[450px] mx-4 bg-[#09090b] border border-zinc-800 rounded-2xl p-4 sm:p-6 mt-8 sm:mt-12 shadow-2xl relative overflow-hidden">
-                            {/* Glossy top highlight */}
-                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-                            <div className="flex justify-between items-end mb-4">
-                                <div>
-                                    <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest mb-1">Your Progress</p>
-                                    <h4 className="text-2xl font-bold text-white flex items-center gap-2">
-                                        {actualProgress}%
-                                        <span className="text-zinc-600 text-lg font-medium">Complete</span>
-                                    </h4>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-zinc-500 bg-zinc-900/50 px-3 py-1.5 rounded-lg border border-zinc-800/50">
-                                    <Clock size={12} />
-                                    <span className="text-xs font-mono">{elapsedTime}s Elapsed</span>
-                                </div>
-                            </div>
-
-                            {/* Bar Container */}
-                            <div className="h-4 w-full bg-zinc-900/50 rounded-full overflow-hidden border border-zinc-800/50 p-[2px]">
-                                {/* Blue bar with real progress */}
-                                <div
-                                    className="h-full bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all duration-500 ease-out relative overflow-hidden"
-                                    style={{ width: `${actualProgress}%` }}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
-                                </div>
-                            </div>
-
-                            {/* Step indicator */}
-                            <div className="mt-4 flex items-center justify-between text-[10px] text-zinc-500">
-                                <span>Step {Math.min(Math.ceil(actualProgress / 20), 5)} of 5</span>
-                                <span className="text-zinc-600">{loadingStep}</span>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {/* Bottom Controls */}
-                    <div className="mt-8 flex items-center gap-4 animate-fade-in">
-                        {/* Stop Button (Simplified to match clean look) */}
-                        <button
+                    {/* Bottom Controls (Cancel Button) */}
+                    <div className="mt-16 flex items-center justify-center animate-fade-in relative z-30">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={handleStopGeneration}
-                            className="text-zinc-500 text-xs hover:text-red-400 transition-colors flex items-center gap-2 px-4 py-2"
+                            className="group flex items-center gap-3 px-8 py-3 rounded-full bg-black/40 hover:bg-black/60 border border-zinc-800 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300 backdrop-blur-md"
                         >
-                            <div className="w-1.5 h-1.5 bg-current rounded-full"></div>
-                            Cancel Generation
-                        </button>
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                            <span className="text-zinc-400 group-hover:text-red-400 text-sm font-medium transition-colors">Cancel Generation</span>
+                        </motion.button>
                     </div>
-
 
                 </div>
+
+
             </div>
         )
     }
