@@ -1,0 +1,31 @@
+{
+  "name": "copy-of-copy-of-saas-blueprint-&-validator",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "recharts": "^3.5.1",
+    "lucide-react": "^0.555.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "@google/genai": "^1.31.0",
+    "@supabase/supabase-js": "^2.86.2",
+    "@hello-pangea/dnd": "^18.0.1",
+    "reactflow": "^11.11.4",
+    "react-markdown": "^10.1.0",
+    "html-to-image": "^1.11.11",
+    "jspdf": "^2.5.1",
+    "three": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

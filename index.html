@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SaaS Blueprint & Validator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/reactflow@11.10.1/dist/style.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Outfit', 'Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            },
+            colors: {
+              border: "hsl(var(--border))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              'slide-in': 'slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'shimmer': 'shimmer 2.5s linear infinite',
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideIn: {
+                '0%': { transform: 'translateX(-20px)', opacity: '0' },
+                '100%': { transform: 'translateX(0)', opacity: '1' },
+              },
+              slideUp: {
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              shimmer: {
+                '0%': { backgroundPosition: '-200% 0' },
+                '100%': { backgroundPosition: '200% 0' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+      :root {
+        --glass-border: rgba(0, 0, 0, 0.08);
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+      }
+
+      html.dark {
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-bg: rgba(9, 9, 11, 0.6);
+        --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Premium Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d4d4d8; 
+        border-radius: 10px;
+        border: 2px solid transparent; 
+        background-clip: content-box;
+      }
+      html.dark ::-webkit-scrollbar-thumb {
+        background: #27272a; 
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1aa; 
+      }
+      html.dark ::-webkit-scrollbar-thumb:hover {
+        background: #52525b; 
+      }
+
+      /* Hide Scrollbar Utility */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+
+      body {
+        background-color: #f8fafc; /* Light Mode Default */
+        color: #09090b;
+        font-family: 'Outfit', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden; /* App handles scroll */
+        transition: background-color 0.3s ease;
+      }
+
+      html.dark body {
+        background-color: #000000;
+        color: #f4f4f5;
+      }
+
+      /* Utility: Masked Gradient for scrolling lists */
+      .mask-gradient {
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      }
+      .mask-gradient-y {
+        mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+      }
+
+      /* Utility: Glass Card Premium */
+      .glass {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .glass:hover {
+        border-color: rgba(139, 92, 246, 0.3); /* Violet hint on hover */
+        transform: translateY(-2px);
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);
+      }
+      html.dark .glass:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+      }
+
+      /* Utility: Animated Border Shimmer */
+      .animate-border-shimmer {
+        position: relative;
+        overflow: hidden;
+      }
+      .animate-border-shimmer::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: 0.5s;
+      }
+      html.dark .animate-border-shimmer::before {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      }
+      .animate-border-shimmer:hover::before {
+        left: 100%;
+      }
+
+      /* Custom Stagger Delays */
+      .delay-100 { animation-delay: 100ms; }
+      .delay-200 { animation-delay: 200ms; }
+      .delay-300 { animation-delay: 300ms; }
+      .delay-500 { animation-delay: 500ms; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.86.2",
+    "@hello-pangea/dnd": "https://aistudiocdn.com/@hello-pangea/dnd@^18.0.1",
+    "reactflow": "https://aistudiocdn.com/reactflow@^11.11.4",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "html-to-image": "https://aistudiocdn.com/html-to-image@^1.11.11",
+    "jspdf": "https://aistudiocdn.com/jspdf@^2.5.1",
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
