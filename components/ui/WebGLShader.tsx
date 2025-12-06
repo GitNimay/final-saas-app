@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from "react"
 import * as THREE from "three"
 
-export function WebGLShader() {
+export function WebGLShader({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<{
     scene: THREE.Scene | null
@@ -60,14 +60,14 @@ export function WebGLShader() {
 
     const initScene = () => {
       refs.scene = new THREE.Scene()
-      refs.renderer = new THREE.WebGLRenderer({ canvas })
+      refs.renderer = new THREE.WebGLRenderer({ canvas, alpha: true }) // alpha: true for transparency
       refs.renderer.setPixelRatio(window.devicePixelRatio)
-      refs.renderer.setClearColor(new THREE.Color(0x000000))
+      // refs.renderer.setClearColor(new THREE.Color(0x000000)) // Remove black background to allow alpha if needed, or keep it. Reverting to black as per original but maybe configurable? Original was black.
 
       refs.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, -1)
 
       refs.uniforms = {
-        resolution: { value: [window.innerWidth, window.innerHeight] },
+        resolution: { value: [canvas.clientWidth, canvas.clientHeight] },
         time: { value: 0.0 },
         xScale: { value: 1.0 },
         yScale: { value: 0.5 },
@@ -76,11 +76,11 @@ export function WebGLShader() {
 
       const position = [
         -1.0, -1.0, 0.0,
-         1.0, -1.0, 0.0,
-        -1.0,  1.0, 0.0,
-         1.0, -1.0, 0.0,
-        -1.0,  1.0, 0.0,
-         1.0,  1.0, 0.0,
+        1.0, -1.0, 0.0,
+        -1.0, 1.0, 0.0,
+        1.0, -1.0, 0.0,
+        -1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
       ]
 
       const positions = new THREE.BufferAttribute(new Float32Array(position), 3)
@@ -109,20 +109,22 @@ export function WebGLShader() {
     }
 
     const handleResize = () => {
-      if (!refs.renderer || !refs.uniforms) return
-      const width = window.innerWidth
-      const height = window.innerHeight
+      if (!canvas || !refs.renderer || !refs.uniforms) return
+      const width = canvas.clientWidth
+      const height = canvas.clientHeight
       refs.renderer.setSize(width, height, false)
       refs.uniforms.resolution.value = [width, height]
     }
 
     initScene()
     animate()
-    window.addEventListener("resize", handleResize)
+
+    const resizeObserver = new ResizeObserver(() => handleResize())
+    resizeObserver.observe(canvas)
 
     return () => {
       if (refs.animationId) cancelAnimationFrame(refs.animationId)
-      window.removeEventListener("resize", handleResize)
+      resizeObserver.disconnect()
       if (refs.mesh) {
         refs.scene?.remove(refs.mesh)
         refs.mesh.geometry.dispose()
@@ -137,7 +139,7 @@ export function WebGLShader() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed top-0 left-0 w-full h-full block -z-10"
+      className={className || "absolute inset-0 w-full h-full block -z-10"}
     />
   )
 }

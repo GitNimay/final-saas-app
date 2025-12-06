@@ -34,10 +34,10 @@ export interface Project {
     mindMap?: MindMapData;
     techStack?: TechStackData;
     deepAnalysis?: DeepAnalysisData; // New field
-    prd?: string; 
+    prd?: string;
     builder?: {
-        prompt: string;
-        answers: Record<string, string>;
+      prompt: string;
+      answers: Record<string, string>;
     }
   };
 }
@@ -49,9 +49,9 @@ export interface ValidationData {
   radarData: { subject: string; A: number; fullMark: number }[];
   revenueData: { year: string; revenue: number; expenses: number }[];
   marketStats: {
-    tam: number; 
-    sam: number; 
-    som: number; 
+    tam: number;
+    sam: number;
+    som: number;
   };
   swot: {
     strengths: string[];
@@ -59,7 +59,7 @@ export interface ValidationData {
     opportunities: string[];
     threats: string[];
   };
-  competitors: { name: string; price: string; gap: string }[];
+  competitors: { name: string; price: string; gap: string; url?: string }[];
 }
 
 // New Data Structures for Deep Insights
@@ -133,15 +133,15 @@ export interface MindMapData {
 }
 
 export interface TechStackData {
-  technologies: { 
-    name: string; 
-    category: string; 
-    icon: string; 
+  technologies: {
+    name: string;
+    category: string;
+    icon: string;
     docs: string;
     description: string;
-    color: string; 
-  }[]; 
-  auditReport: string; 
+    color: string;
+  }[];
+  auditReport: string;
   diagram?: {
     nodes: { id: string; label: string; type: string }[];
     edges: { id: string; source: string; target: string }[];

@@ -9,17 +9,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "recharts": "^3.5.1",
+    "@google/genai": "^1.31.0",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@supabase/supabase-js": "^2.86.2",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.25",
+    "html-to-image": "^1.11.11",
+    "jspdf": "^2.5.1",
+    "lenis": "^1.3.15",
     "lucide-react": "^0.555.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "@google/genai": "^1.31.0",
-    "@supabase/supabase-js": "^2.86.2",
-    "@hello-pangea/dnd": "^18.0.1",
-    "reactflow": "^11.11.4",
     "react-markdown": "^10.1.0",
-    "html-to-image": "^1.11.11",
-    "jspdf": "^2.5.1",
+    "reactflow": "^11.11.4",
+    "recharts": "^3.5.1",
+    "tailwind-merge": "^3.4.0",
     "three": "latest"
   },
   "devDependencies": {
