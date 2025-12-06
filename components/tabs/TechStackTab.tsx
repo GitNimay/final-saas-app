@@ -49,57 +49,62 @@ const TechStackTab: React.FC<Props> = ({ data }) => {
           <Layers size={16} className="text-blue-500 dark:text-blue-400" /> Recommended Tech Stack
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
-          {data.technologies.map((tech, idx) => {
-            const fallbackColor = DEFAULT_COLORS[tech.name.toLowerCase().replace(/[^a-z0-9]/g, '')] || '#000000';
-            let finalColor = tech.color && tech.color.startsWith('#') ? tech.color : fallbackColor;
+          {(data?.technologies || []).length === 0 ? (
+            <div className="col-span-full text-center py-10 text-zinc-500">
+              No technologies found.
+            </div>
+          ) : (
+            (data?.technologies || []).map((tech, idx) => {
+              const fallbackColor = DEFAULT_COLORS[tech.name.toLowerCase().replace(/[^a-z0-9]/g, '')] || '#000000';
+              let finalColor = tech.color && tech.color.startsWith('#') ? tech.color : fallbackColor;
 
-            // In dark mode, ensure black icons (Next.js, Vercel) are white
-            // In light mode, they stay black
-            const isDarkIcon = finalColor.toLowerCase() === '#000000' || finalColor.toLowerCase() === '#1b222d';
+              // In dark mode, ensure black icons (Next.js, Vercel) are white
+              // In light mode, they stay black
+              const isDarkIcon = finalColor.toLowerCase() === '#000000' || finalColor.toLowerCase() === '#1b222d';
 
-            // We use CSS class based coloring for dynamic theme support on svg fill
-            const iconColorClass = isDarkIcon ? 'text-black dark:text-white' : '';
+              // We use CSS class based coloring for dynamic theme support on svg fill
+              const iconColorClass = isDarkIcon ? 'text-black dark:text-white' : '';
 
-            // Explicit style for colors that are NOT black/white neutral
-            const iconStyle = !isDarkIcon ? { color: finalColor } : {};
+              // Explicit style for colors that are NOT black/white neutral
+              const iconStyle = !isDarkIcon ? { color: finalColor } : {};
 
-            return (
-              <a
-                key={idx}
-                href={tech.docs}
-                target="_blank"
-                rel="noreferrer"
-                className="group relative flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-white dark:bg-[#09090b]/50 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-zinc-200 dark:border-white/5 transition-all duration-500 hover:-translate-y-2 animate-slide-up shadow-sm dark:shadow-none"
-                style={{ animationDelay: `${idx * 50}ms` }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${finalColor}40`;
-                  e.currentTarget.style.boxShadow = `0 15px 40px -10px ${finalColor}20`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = ''; // clear inline style to revert to class
-                  e.currentTarget.style.boxShadow = '';
-                }}
-              >
-                {/* Ambient Glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none rounded-3xl"
-                  style={{ background: `radial-gradient(circle at center, ${finalColor}, transparent 80%)` }}>
-                </div>
+              return (
+                <a
+                  key={idx}
+                  href={tech.docs}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-white dark:bg-[#09090b]/50 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-zinc-200 dark:border-white/5 transition-all duration-500 hover:-translate-y-2 animate-slide-up shadow-sm dark:shadow-none"
+                  style={{ animationDelay: `${idx * 50}ms` }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = `${finalColor}40`;
+                    e.currentTarget.style.boxShadow = `0 15px 40px -10px ${finalColor}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = ''; // clear inline style to revert to class
+                    e.currentTarget.style.boxShadow = '';
+                  }}
+                >
+                  {/* Ambient Glow */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none rounded-3xl"
+                    style={{ background: `radial-gradient(circle at center, ${finalColor}, transparent 80%)` }}>
+                  </div>
 
-                <div className={`relative z-10 mb-6 transform group-hover:scale-110 transition-transform duration-500 drop-shadow-xl ${iconColorClass}`} style={iconStyle}>
-                  {getIcon(tech.icon || tech.name, isDarkIcon ? 'currentColor' : finalColor)}
-                </div>
+                  <div className={`relative z-10 mb-6 transform group-hover:scale-110 transition-transform duration-500 drop-shadow-xl ${iconColorClass}`} style={iconStyle}>
+                    {getIcon(tech.icon || tech.name, isDarkIcon ? 'currentColor' : finalColor)}
+                  </div>
 
-                <div className="relative z-10 text-center">
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm mb-1.5 tracking-tight group-hover:text-black dark:group-hover:text-white transition-colors">{tech.name}</h3>
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">{tech.category}</p>
-                </div>
+                  <div className="relative z-10 text-center">
+                    <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm mb-1.5 tracking-tight group-hover:text-black dark:group-hover:text-white transition-colors">{tech.name}</h3>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">{tech.category}</p>
+                  </div>
 
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                  <ArrowUpRight size={14} className="text-zinc-400 hover:text-black dark:hover:text-white" />
-                </div>
-              </a>
-            );
-          })}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                    <ArrowUpRight size={14} className="text-zinc-400 hover:text-black dark:hover:text-white" />
+                  </div>
+                </a>
+              );
+            }))}
         </div>
       </div>
     </AnimatedSection>
