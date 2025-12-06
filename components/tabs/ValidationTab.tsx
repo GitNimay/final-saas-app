@@ -133,10 +133,10 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
             </div>
 
             {/* ========== MAIN GRID ========== */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4">
 
                 {/* ===== VIABILITY SCORE CARD ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">Viability</span>
@@ -163,7 +163,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== REVENUE PROJECTION CARD ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">Projected ARR</span>
@@ -196,7 +196,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== GROWTH RATE CARD ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">CAGR Growth</span>
@@ -219,7 +219,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== RISK ASSESSMENT CARD (NEW) ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">Risk Level</span>
@@ -258,7 +258,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== MAIN STATISTICS CHART ===== */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-8 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-8 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
                             <div className="flex items-center gap-3">
@@ -311,7 +311,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== RADAR CHART (NEW) ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Multi-Factor Analysis</h3>
@@ -339,7 +339,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== REVENUE VS EXPENSES BAR CHART (NEW) ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Revenue vs Expenses</h3>
@@ -370,7 +370,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== PROFIT METRICS (NEW) ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Profit Metrics</h3>
@@ -409,14 +409,14 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== SWOT GRID (NEW) ===== */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-6 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-6 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">SWOT Analysis</h3>
                             <Target size={14} className="text-zinc-600" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                             {/* Strengths */}
                             <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3">
                                 <div className="flex items-center gap-2 mb-2">
@@ -485,7 +485,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== COMPETITORS CARD ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Competitors</h3>
@@ -541,7 +541,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== MARKET SIZE CARD ===== */}
-                <div className="col-span-1 md:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Market Size</h3>
@@ -588,7 +588,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== SUMMARY BANNER ===== */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-12 bg-black border border-zinc-900 rounded-2xl p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-12 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] to-transparent pointer-events-none"></div>
 
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">

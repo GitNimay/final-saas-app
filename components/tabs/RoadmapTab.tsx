@@ -112,13 +112,13 @@ const RoadmapTab: React.FC<Props> = ({ data, onUpdate }) => {
   }
 
   return (
-    <div className="h-[420px] w-full overflow-x-auto p-2 custom-scrollbar">
+    <div className="h-[380px] sm:h-[420px] w-full overflow-x-auto p-2 custom-scrollbar scroll-smooth">
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="flex gap-3 h-full min-w-max pb-2">
           {board.columnOrder.map((colId, idx) => {
             const column = board.columns[colId];
             return (
-              <div key={column.id} className="w-[240px] flex flex-col h-full max-h-full bg-[#0a0a0a] border border-white/[0.06] rounded-xl overflow-hidden">
+              <div key={column.id} className="w-[200px] sm:w-[220px] md:w-[240px] flex flex-col h-full max-h-full bg-[#0a0a0a] border border-white/[0.06] rounded-xl overflow-hidden shrink-0">
 
                 {/* Column Header */}
                 <div className="px-3 py-2.5 border-b border-white/[0.06] flex justify-between items-center bg-[#0c0c0c]">

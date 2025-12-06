@@ -48,7 +48,7 @@ const TechStackTab: React.FC<Props> = ({ data }) => {
         <h2 className="text-zinc-800 dark:text-zinc-200 font-bold text-sm uppercase tracking-wider mb-8 flex items-center gap-2">
           <Layers size={16} className="text-blue-500 dark:text-blue-400" /> Recommended Tech Stack
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
           {data.technologies.map((tech, idx) => {
             const fallbackColor = DEFAULT_COLORS[tech.name.toLowerCase().replace(/[^a-z0-9]/g, '')] || '#000000';
             let finalColor = tech.color && tech.color.startsWith('#') ? tech.color : fallbackColor;
@@ -69,7 +69,7 @@ const TechStackTab: React.FC<Props> = ({ data }) => {
                 href={tech.docs}
                 target="_blank"
                 rel="noreferrer"
-                className="group relative flex flex-col items-center justify-center p-8 bg-white dark:bg-[#09090b]/50 backdrop-blur-md rounded-3xl border border-zinc-200 dark:border-white/5 transition-all duration-500 hover:-translate-y-2 animate-slide-up shadow-sm dark:shadow-none"
+                className="group relative flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-white dark:bg-[#09090b]/50 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-zinc-200 dark:border-white/5 transition-all duration-500 hover:-translate-y-2 animate-slide-up shadow-sm dark:shadow-none"
                 style={{ animationDelay: `${idx * 50}ms` }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = `${finalColor}40`;

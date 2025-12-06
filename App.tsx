@@ -500,7 +500,7 @@ const App = () => {
     if (!currentProject && loadingStep === LoadingStep.IDLE) {
         return (
             <ReactLenis root>
-                <div className="relative w-full h-screen overflow-hidden bg-white dark:bg-black flex font-sans text-zinc-900 dark:text-white selection:bg-indigo-500/30 transition-colors duration-300">
+                <div className="relative w-full min-h-screen overflow-x-hidden bg-white dark:bg-black flex font-sans text-zinc-900 dark:text-white selection:bg-indigo-500/30 transition-colors duration-300">
                     {/* ... existing content ... */}
                     {/* I need to make sure I am wrapping the correct outer div or replacing it to be scrollable if Lenis takes over */}
                     {/* Lenis typically works on the window/body. If overflow is hidden on h-screen, Lenis might not work if it expects body scroll. */}
@@ -549,7 +549,13 @@ const App = () => {
                         )
                     }
 
-                    <div className={`fixed left-0 top-0 h-full w-80 bg-zinc-50/90 dark:bg-black/20 backdrop-blur-md border-r border-zinc-200 dark:border-white/5 p-6 flex flex-col z-40 transition-transform duration-500 ${showHistorySidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+                    {/* Mobile Sidebar Overlay */}
+                    <div
+                        className={`md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity duration-300 ${showHistorySidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        onClick={() => setShowHistorySidebar(false)}
+                    />
+
+                    <div className={`fixed left-0 top-0 h-full w-72 md:w-80 bg-zinc-50/95 dark:bg-black/95 md:bg-zinc-50/90 md:dark:bg-black/20 backdrop-blur-md border-r border-zinc-200 dark:border-white/5 p-4 md:p-6 flex flex-col z-40 transition-transform duration-500 ${showHistorySidebar ? 'translate-x-0' : '-translate-x-full'}`}>
 
                         <div className="mb-6 pl-1 mt-2 flex items-center justify-between">
                             <h2 className="text-zinc-900 dark:text-zinc-100 font-bold text-lg flex items-center gap-2 shadow-black drop-shadow-sm">
@@ -694,15 +700,15 @@ const App = () => {
                         <div className="flex flex-col items-center justify-center max-w-2xl w-full px-4 text-center z-10 relative">
                             <TextReveal
                                 text={`Good to See You, ${userSettings.displayName.split(' ')[0]}!`}
-                                className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white tracking-tight drop-shadow-lg justify-center"
+                                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white tracking-tight drop-shadow-lg justify-center"
                                 delay={0.2}
                             />
 
 
-                            <div className="mb-6">
+                            <div className="mb-4 sm:mb-6">
                                 <TextReveal
                                     text="How can I help validate your idea?"
-                                    className="text-2xl md:text-3xl font-light text-zinc-600 dark:text-zinc-300 drop-shadow-md justify-center"
+                                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-light text-zinc-600 dark:text-zinc-300 drop-shadow-md justify-center"
                                     delay={0.8}
                                 />
                             </div>
@@ -751,7 +757,7 @@ const App = () => {
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-center gap-3 animate-fade-in delay-300">
+                            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 animate-fade-in delay-300">
                                 {[
                                     { label: "Validate a niche CRM", icon: <CheckCircle2 size={14} /> },
                                     { label: "SaaS for Dog Walkers", icon: <Bot size={14} /> },
@@ -844,7 +850,7 @@ const App = () => {
 
                     {/* Text Content */}
                     <div className="text-center -mt-8 relative z-20">
-                        <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">
+                        <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 tracking-tight text-center px-4">
                             {LOADING_MESSAGES[loadingMessageIndex]}
                         </h3>
 
@@ -857,7 +863,7 @@ const App = () => {
 
 
                         {/* Reference-style Progress Card */}
-                        <div className="w-[450px] bg-[#09090b] border border-zinc-800 rounded-2xl p-6 mt-12 shadow-2xl relative overflow-hidden">
+                        <div className="w-full max-w-[450px] mx-4 bg-[#09090b] border border-zinc-800 rounded-2xl p-4 sm:p-6 mt-8 sm:mt-12 shadow-2xl relative overflow-hidden">
                             {/* Glossy top highlight */}
                             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
@@ -917,8 +923,22 @@ const App = () => {
     return (
         <div className="flex h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-white overflow-hidden font-sans selection:bg-indigo-500/30">
 
+            {/* Mobile Sidebar Toggle Button */}
+            <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="md:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-black/90 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all shadow-lg"
+            >
+                {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+            </button>
+
+            {/* Mobile Sidebar Overlay */}
+            <div
+                className={`md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20 transition-opacity duration-300 ${!sidebarCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={() => setSidebarCollapsed(true)}
+            />
+
             <aside
-                className={`bg-white dark:bg-black/95 backdrop-blur-xl border-r border-zinc-200 dark:border-white/5 flex flex-col py-6 z-20 shrink-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${sidebarCollapsed ? 'w-20 items-center' : 'w-72'
+                className={`fixed md:relative h-full bg-white dark:bg-black/95 backdrop-blur-xl border-r border-zinc-200 dark:border-white/5 flex flex-col py-6 z-30 shrink-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${sidebarCollapsed ? 'w-20 items-center -translate-x-full md:translate-x-0' : 'w-72 translate-x-0'
                     }`}
             >
                 <div className={`px-6 mb-10 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
@@ -1005,7 +1025,7 @@ const App = () => {
                             {getInitials(currentProject?.name || 'Pro Ject')}
                         </div>
                         <div className="flex flex-col justify-center">
-                            <h1 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 truncate max-w-[200px] sm:max-w-md leading-tight">{currentProject?.name}</h1>
+                            <h1 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100 truncate max-w-[120px] sm:max-w-[200px] md:max-w-md leading-tight">{currentProject?.name}</h1>
                             <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 <span className="text-xs text-zinc-500 font-medium">Active Session</span>
@@ -1110,7 +1130,7 @@ const App = () => {
 
             {/* --- REDESIGNED AI CONSULTANT SIDEBAR --- */}
             <div
-                className={`fixed top-4 right-4 bottom-4 w-[450px] bg-white/95 dark:bg-black/80 backdrop-blur-2xl border border-zinc-200 dark:border-white/10 rounded-3xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 flex flex-col shadow-2xl ${chatOpen ? 'translate-x-0' : 'translate-x-[120%]'}`}
+                className={`fixed top-0 right-0 bottom-0 w-full sm:top-4 sm:right-4 sm:bottom-4 sm:w-[400px] md:w-[450px] bg-white/95 dark:bg-black/80 backdrop-blur-2xl border-0 sm:border border-zinc-200 dark:border-white/10 sm:rounded-3xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 flex flex-col shadow-2xl ${chatOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 {/* Header */}
                 <div className="relative z-10 px-6 py-5 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between">

@@ -227,6 +227,110 @@
     .delay-500 {
       animation-delay: 500ms;
     }
+
+    /* Mobile Responsive Utilities */
+    @media (max-width: 767px) {
+      .mobile-hidden {
+        display: none !important;
+      }
+
+      .mobile-full-width {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .desktop-hidden {
+        display: none !important;
+      }
+    }
+
+    /* Mobile Sidebar Overlay */
+    .mobile-sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 35;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .mobile-sidebar-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Touch-friendly Targets */
+    @media (max-width: 767px) {
+
+      button,
+      a,
+      input,
+      select,
+      textarea {
+        min-height: 44px;
+      }
+
+      .touch-target {
+        min-width: 44px;
+        min-height: 44px;
+      }
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      z-index: 40;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+    }
+
+    html.light .mobile-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .mobile-nav-item.active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    html.light .mobile-nav-item.active {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .mobile-nav-item span {
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    /* Safe area for bottom nav */
+    @media (max-width: 767px) {
+      .mobile-bottom-padding {
+        padding-bottom: 80px !important;
+      }
+    }
   </style>
 </head>
 
