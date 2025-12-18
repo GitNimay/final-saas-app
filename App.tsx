@@ -86,6 +86,7 @@ const App = () => {
     const [visualProgress, setVisualProgress] = useState(0); // Smoothed progress for UI
     const [elapsedTime, setElapsedTime] = useState(0); // Elapsed time in seconds
     const hasShownWelcome = useRef(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -105,6 +106,55 @@ const App = () => {
     // Model Dropdown State
     const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
     const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0]);
+
+    // Suggestions State
+    const SUGGESTION_POOL = [
+        [
+            { label: "Validate a niche CRM", icon: <CheckCircle2 size={14} /> },
+            { label: "SaaS for Dog Walkers", icon: <Bot size={14} /> },
+            { label: "Micro-SaaS Roadmap", icon: <Map size={14} /> },
+        ],
+        [
+            { label: "AI-Powered Newsletter Tool", icon: <Sparkles size={14} /> },
+            { label: "B2B Analytics Platform", icon: <BarChart2 size={14} /> },
+            { label: "Developer productivity app", icon: <Terminal size={14} /> },
+        ],
+        [
+            { label: "E-Learning for kids", icon: <Bot size={14} /> },
+            { label: "Fitness Tracker SaaS", icon: <TrendingUp size={14} /> },
+            { label: "Social Media Scheduler", icon: <Clock size={14} /> },
+        ],
+        [
+            { label: "Invoice automation tool", icon: <FileText size={14} /> },
+            { label: "Project Management Suite", icon: <Trello size={14} /> },
+            { label: "Customer Feedback Portal", icon: <MessageSquarePlus size={14} /> },
+        ],
+        [
+            { label: "Remote Team Collaboration", icon: <Bot size={14} /> },
+            { label: "Content Generation AI", icon: <Sparkles size={14} /> },
+            { label: "Email Marketing Platform", icon: <Mail size={14} /> },
+        ],
+    ];
+
+    const [currentSuggestions, setCurrentSuggestions] = useState(() => {
+        return SUGGESTION_POOL[Math.floor(Math.random() * SUGGESTION_POOL.length)];
+    });
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const refreshSuggestions = () => {
+        if (isRefreshing) return; // Prevent multiple clicks during animation
+
+        setIsRefreshing(true);
+
+        // Wait for fade-out animation, then change suggestions
+        setTimeout(() => {
+            const randomIndex = Math.floor(Math.random() * SUGGESTION_POOL.length);
+            setCurrentSuggestions(SUGGESTION_POOL[randomIndex]);
+
+            // Reset refreshing state after fade-in
+            setTimeout(() => setIsRefreshing(false), 300);
+        }, 200);
+    };
 
     // Derived Theme State for passing to components that need JS-level theme awareness (e.g. Charts)
     const isDarkMode = userSettings.theme === 'dark' || (userSettings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -323,6 +373,13 @@ const App = () => {
         try {
             const enhanced = await enhancePrompt(ideaInput);
             setIdeaInput(enhanced);
+            // Resize textarea after enhancement
+            setTimeout(() => {
+                if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto';
+                    textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+                }
+            }, 0);
         } catch (e) {
             console.error("Enhance failed", e);
         } finally {
@@ -760,19 +817,31 @@ const App = () => {
                             </p>
 
                             <div className="w-full max-w-2xl relative mb-8 animate-slide-up delay-200">
-                                <div className="relative flex items-center bg-white dark:bg-zinc-900/50 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl dark:shadow-2xl transition-all focus-within:ring-1 focus-within:ring-indigo-500/30 focus-within:border-indigo-500/50 group overflow-hidden">
+                                <div className="relative flex items-start bg-white dark:bg-zinc-900/50 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl dark:shadow-2xl transition-all focus-within:ring-1 focus-within:ring-indigo-500/30 focus-within:border-indigo-500/50 group overflow-hidden min-h-[64px]">
 
-                                    <input
-                                        type="text"
+                                    <textarea
+                                        ref={textareaRef}
                                         value={ideaInput}
-                                        onChange={(e) => setIdeaInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSpark()}
+                                        onChange={(e) => {
+                                            setIdeaInput(e.target.value);
+                                            // Auto-resize textarea
+                                            e.target.style.height = 'auto';
+                                            e.target.style.height = e.target.scrollHeight + 'px';
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSpark();
+                                            }
+                                        }}
                                         placeholder="Ask anything..."
-                                        className="w-full bg-transparent border-none outline-none text-base text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 h-16 pl-6 pr-32 font-medium"
+                                        className="w-full bg-transparent border-none outline-none text-base text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 py-5 pl-6 pr-32 font-medium resize-none overflow-hidden min-h-[64px] max-h-[200px]"
                                         autoFocus
+                                        rows={1}
+                                        style={{ height: 'auto' }}
                                     />
 
-                                    <div className="absolute right-2 flex items-center gap-2">
+                                    <div className="absolute right-2 top-3 flex items-center gap-2">
                                         <button
                                             onClick={handleEnhance}
                                             disabled={isEnhancing || !ideaInput.trim()}
@@ -800,20 +869,60 @@ const App = () => {
                             </div>
 
                             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 animate-fade-in delay-300">
-                                {[
-                                    { label: "Validate a niche CRM", icon: <CheckCircle2 size={14} /> },
-                                    { label: "SaaS for Dog Walkers", icon: <Bot size={14} /> },
-                                    { label: "Micro-SaaS Roadmap", icon: <Map size={14} /> },
-                                ].map((suggestion, i) => (
-                                    <ShinyButton
-                                        key={i}
-                                        onClick={() => handleSpark(suggestion.label)}
-                                        icon={suggestion.icon}
-                                        className="bg-zinc-900/50 hover:bg-zinc-800/50 backdrop-blur-md border-zinc-800"
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={currentSuggestions[0].label}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
                                     >
-                                        {suggestion.label}
-                                    </ShinyButton>
-                                ))}
+                                        {currentSuggestions.map((suggestion, i) => (
+                                            <motion.div
+                                                key={suggestion.label}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: i * 0.05, duration: 0.2 }}
+                                            >
+                                                <ShinyButton
+                                                    onClick={() => handleSpark(suggestion.label)}
+                                                    icon={suggestion.icon}
+                                                    className="bg-zinc-900/50 hover:bg-zinc-800/50 backdrop-blur-md border-zinc-800"
+                                                >
+                                                    {suggestion.label}
+                                                </ShinyButton>
+                                            </motion.div>
+                                        ))}
+                                    </motion.div>
+                                </AnimatePresence>
+
+                                {/* Refresh Button */}
+                                <button
+                                    onClick={refreshSuggestions}
+                                    disabled={isRefreshing}
+                                    className="group relative inline-flex items-center gap-2 p-3 rounded-xl text-zinc-100 border hover:border-zinc-600 transition-all duration-300 shadow-lg shadow-black/20 overflow-hidden bg-zinc-900/50 hover:bg-zinc-800/50 backdrop-blur-md border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Refresh suggestions"
+                                    tabIndex={0}
+                                >
+                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-0"></div>
+                                    <div className="relative z-10 flex items-center gap-2">
+                                        <motion.span
+                                            className="text-zinc-400 group-hover:text-white transition-colors"
+                                            animate={{ rotate: isRefreshing ? 360 : 0 }}
+                                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw" aria-hidden="true">
+                                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                                                <path d="M21 3v5h-5"></path>
+                                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                                                <path d="M3 21v-5h5"></path>
+                                            </svg>
+                                        </motion.span>
+                                    </div>
+                                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                </button>
                             </div>
 
                             <div className="fixed bottom-6 text-[10px] text-zinc-400 dark:text-zinc-500 animate-fade-in delay-500">
