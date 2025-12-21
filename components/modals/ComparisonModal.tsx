@@ -106,10 +106,10 @@ const ComparisonModal: React.FC<Props> = ({ isOpen, onClose, projects }) => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-6xl max-h-[90vh] bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+                className="w-full max-w-6xl h-[85vh] bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden isolate"
             >
                 {/* Header */}
-                <div className="shrink-0 p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div className="h-[88px] shrink-0 p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-[#09090b] z-10">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                             <BarChart2 size={20} className="text-indigo-500" />
@@ -127,9 +127,9 @@ const ComparisonModal: React.FC<Props> = ({ isOpen, onClose, projects }) => {
                     </button>
                 </div>
 
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex overflow-hidden h-[calc(100%-88px)] bg-white dark:bg-[#09090b]">
                     {/* Project Selector Sidebar */}
-                    <div className="w-64 shrink-0 border-r border-zinc-200 dark:border-zinc-800 p-4 overflow-y-auto">
+                    <div className="w-64 shrink-0 border-r border-zinc-200 dark:border-zinc-800 p-4 overflow-y-auto pointer-events-auto touch-manipulation">
                         <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Select Projects</div>
                         <div className="space-y-2">
                             {projects.map(p => {
@@ -139,8 +139,8 @@ const ComparisonModal: React.FC<Props> = ({ isOpen, onClose, projects }) => {
                                         key={p.id}
                                         onClick={() => toggleProject(p.id)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected
-                                                ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
-                                                : 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700'
+                                            ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
+                                            : 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700'
                                             }`}
                                     >
                                         {isSelected ? (
@@ -161,7 +161,7 @@ const ComparisonModal: React.FC<Props> = ({ isOpen, onClose, projects }) => {
                     </div>
 
                     {/* Main Comparison Area */}
-                    <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="flex-1 p-6 overflow-y-auto pointer-events-auto touch-manipulation">
                         {selectedProjects.length < 2 ? (
                             <div className="flex flex-col items-center justify-center h-full text-zinc-500">
                                 <BarChart2 size={48} className="mb-4 opacity-30" />
