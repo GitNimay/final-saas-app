@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { User, Project, LoadingStep, TabView, Message, KanbanColumn, UserSettings } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
-import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt } from './services/aiService';
+import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan } from './services/aiService';
 import { saveProject, getProjects, deleteProject, subscribeToProject, subscribeToMessages, getMessages, sendMessage, getUserSettings, saveUserSettings, syncUserProfile } from './services/projectService';
 import ParticleBackground from './components/ui/ParticleBackground';
 import PaperBackground from './components/ui/PaperBackground';
@@ -15,11 +15,13 @@ import TechStackTab from './components/tabs/TechStackTab';
 import PRDTab from './components/tabs/PRDTab';
 import BuilderTab from './components/tabs/BuilderTab';
 import DeepAnalysisTab from './components/tabs/DeepAnalysisTab';
+import ActionPlanTab from './components/tabs/ActionPlanTab';
 import UserMenu from './components/menus/UserMenu';
 import SettingsModal from './components/modals/SettingsModal';
+import ComparisonModal from './components/modals/ComparisonModal';
 import LoginPage from './components/auth/LoginPage';
 import { useNotification } from './contexts/NotificationContext';
-import { Bot, ChevronRight, LayoutDashboard, Map, Trello, Layers, Settings, LogOut, Loader2, Sparkles, Send, Trash2, History, MessageSquarePlus, Mic, Plus, BarChart2, X, Paperclip, Share2, Copy, Check, Link as LinkIcon, ExternalLink, FileText, Terminal, TrendingUp, Download, PanelLeftClose, PanelLeftOpen, Hexagon, HelpCircle, Twitter, Facebook, Linkedin, Mail, Zap, CheckCircle2, MoreHorizontal, Square, StopCircle, ChevronDown, Lock, Wand2, ArrowRight, Clock, HelpCircle as HelpIcon, AlertCircle } from 'lucide-react';
+import { Bot, ChevronRight, LayoutDashboard, Map, Trello, Layers, Settings, LogOut, Loader2, Sparkles, Send, Trash2, History, MessageSquarePlus, Mic, Plus, BarChart2, X, Paperclip, Share2, Copy, Check, Link as LinkIcon, ExternalLink, FileText, Terminal, TrendingUp, Download, PanelLeftClose, PanelLeftOpen, Hexagon, HelpCircle, Twitter, Facebook, Linkedin, Mail, Zap, CheckCircle2, MoreHorizontal, Square, StopCircle, ChevronDown, Lock, Wand2, ArrowRight, Clock, HelpCircle as HelpIcon, AlertCircle, Calendar, GitCompare } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { ReactLenis } from 'lenis/react';
 import ShinyButton from './components/ui/ShinyButton';
@@ -102,6 +104,7 @@ const App = () => {
     });
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+    const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
 
     // Model Dropdown State
     const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
@@ -719,8 +722,20 @@ const App = () => {
                             )}
                         </div>
 
-                        <div className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-4 pl-1">
-                            Project History
+                        <div className="flex items-center justify-between mb-4 pl-1">
+                            <div className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em]">
+                                Project History
+                            </div>
+                            {projectsHistory.length >= 2 && (
+                                <button
+                                    onClick={() => setComparisonModalOpen(true)}
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-all text-[10px] font-bold"
+                                    title="Compare Projects"
+                                >
+                                    <GitCompare size={12} />
+                                    Compare
+                                </button>
+                            )}
                         </div>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-2" data-lenis-prevent>
@@ -967,6 +982,13 @@ const App = () => {
                         )
                     }
 
+                    {/* Comparison Modal */}
+                    <ComparisonModal
+                        isOpen={comparisonModalOpen}
+                        onClose={() => setComparisonModalOpen(false)}
+                        projects={projectsHistory}
+                    />
+
                 </div >
             </ReactLenis >
         );
@@ -1119,6 +1141,7 @@ const App = () => {
                         { id: 'deepAnalysis', label: 'Deep Insights', icon: TrendingUp },
                         { id: 'blueprint', label: 'Blueprint', icon: Map },
                         { id: 'roadmap', label: 'Roadmap', icon: Trello },
+                        { id: 'actionPlan', label: '30-Day Plan', icon: Calendar },
                         { id: 'techstack', label: 'Tech Stack', icon: Layers },
                         { id: 'prd', label: 'PRD Docs', icon: FileText },
                         { id: 'builder', label: 'AI Builder', icon: Terminal },
@@ -1136,9 +1159,12 @@ const App = () => {
                                 <item.icon size={20} className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 text-indigo-500 dark:text-indigo-400' : 'group-hover:scale-110'}`} />
                                 {!sidebarCollapsed && <span className={`font-medium text-sm relative z-10 tracking-wide ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>}
 
-                                {/* BETA Marker */}
+                                {/* BETA/NEW Marker */}
                                 {!sidebarCollapsed && (item.id === 'prd' || item.id === 'builder') && (
                                     <span className="ml-auto text-[9px] font-bold bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20 dark:border-indigo-500/30">BETA</span>
+                                )}
+                                {!sidebarCollapsed && item.id === 'actionPlan' && (
+                                    <span className="ml-auto text-[9px] font-bold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/20 dark:border-emerald-500/30">NEW</span>
                                 )}
                             </button>
                         )
@@ -1258,6 +1284,11 @@ const App = () => {
                             {activeTab === 'roadmap' && currentProject?.data.roadmap && (
                                 <PageTransition key="roadmap" variant="slideUp">
                                     <RoadmapTab data={currentProject.data.roadmap} onUpdate={(newData) => updateProjectData('roadmap', newData)} />
+                                </PageTransition>
+                            )}
+                            {activeTab === 'actionPlan' && currentProject && (
+                                <PageTransition key="actionPlan" variant="slideUp">
+                                    <ActionPlanTab projectIdea={currentProject.description} existingData={currentProject.data.actionPlan} onUpdate={(data) => updateProjectData('actionPlan', data)} />
                                 </PageTransition>
                             )}
                             {activeTab === 'techstack' && currentProject?.data.techStack && (

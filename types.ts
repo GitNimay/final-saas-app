@@ -33,7 +33,8 @@ export interface Project {
     roadmap?: KanbanBoard;
     mindMap?: MindMapData;
     techStack?: TechStackData;
-    deepAnalysis?: DeepAnalysisData; // New field
+    deepAnalysis?: DeepAnalysisData;
+    actionPlan?: ActionPlanData;
     prd?: string;
     builder?: {
       prompt: string;
@@ -148,7 +149,31 @@ export interface TechStackData {
   };
 }
 
-export type TabView = 'validation' | 'blueprint' | 'roadmap' | 'mindmap' | 'techstack' | 'prd' | 'builder' | 'deepAnalysis';
+// 30-Day Action Plan Data Structure
+export interface ActionPlanTask {
+  day: number;
+  title: string;
+  description: string;
+  estimatedTime: string; // e.g. "2 hours", "30 mins"
+  category: 'Research' | 'Development' | 'Marketing' | 'Design' | 'Testing' | 'Launch';
+}
+
+export interface ActionPlanPhase {
+  id: string;
+  name: string;
+  description: string;
+  startDay: number;
+  endDay: number;
+  tasks: ActionPlanTask[];
+}
+
+export interface ActionPlanData {
+  phases: ActionPlanPhase[];
+  totalTasks: number;
+  estimatedTotalHours: number;
+}
+
+export type TabView = 'validation' | 'blueprint' | 'roadmap' | 'actionPlan' | 'mindmap' | 'techstack' | 'prd' | 'builder' | 'deepAnalysis';
 
 export enum LoadingStep {
   IDLE = 'IDLE',

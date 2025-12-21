@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { BlueprintData, KanbanBoard, MindMapData, TechStackData, ValidationData, DeepAnalysisData } from "../types";
+import { BlueprintData, KanbanBoard, MindMapData, TechStackData, ValidationData, DeepAnalysisData, ActionPlanData } from "../types";
 import { INITIAL_KANBAN_COLUMNS, INITIAL_COLUMN_ORDER } from "../constants";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
@@ -11,7 +11,7 @@ const cleanJson = (text: string) => {
 };
 
 const cleanMarkdown = (text: string) => {
-    return text.replace(/```markdown\n?/g, '').replace(/```\n?/g, '').trim();
+  return text.replace(/```markdown\n?/g, '').replace(/```\n?/g, '').trim();
 }
 
 // --------------------------------------------------------
@@ -172,23 +172,23 @@ const techStackSchema: Schema = {
         nodes: {
           type: Type.ARRAY,
           items: {
-             type: Type.OBJECT,
-             properties: {
-               id: { type: Type.STRING },
-               label: { type: Type.STRING },
-               type: { type: Type.STRING, description: "'frontend', 'backend', 'db', 'tool'" }
-             }
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              label: { type: Type.STRING },
+              type: { type: Type.STRING, description: "'frontend', 'backend', 'db', 'tool'" }
+            }
           }
         },
         edges: {
           type: Type.ARRAY,
           items: {
-             type: Type.OBJECT,
-             properties: {
-               id: { type: Type.STRING },
-               source: { type: Type.STRING },
-               target: { type: Type.STRING }
-             }
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              source: { type: Type.STRING },
+              target: { type: Type.STRING }
+            }
           }
         }
       }
@@ -227,98 +227,98 @@ const deepAnalysisSchema: Schema = {
           }
         },
         audienceSegments: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    segment: { type: Type.STRING },
-                    size: { type: Type.STRING },
-                    painPoint: { type: Type.STRING }
-                }
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              segment: { type: Type.STRING },
+              size: { type: Type.STRING },
+              painPoint: { type: Type.STRING }
             }
+          }
         }
       }
     },
     competitorAnalysis: {
-        type: Type.OBJECT,
-        properties: {
-            featureMatrix: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        feature: { type: Type.STRING },
-                        us: { type: Type.BOOLEAN },
-                        competitorA: { type: Type.BOOLEAN },
-                        competitorB: { type: Type.BOOLEAN }
-                    }
-                }
-            },
-            competitorNames: {
-                type: Type.OBJECT,
-                properties: {
-                    A: { type: Type.STRING },
-                    B: { type: Type.STRING }
-                }
+      type: Type.OBJECT,
+      properties: {
+        featureMatrix: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              feature: { type: Type.STRING },
+              us: { type: Type.BOOLEAN },
+              competitorA: { type: Type.BOOLEAN },
+              competitorB: { type: Type.BOOLEAN }
             }
+          }
+        },
+        competitorNames: {
+          type: Type.OBJECT,
+          properties: {
+            A: { type: Type.STRING },
+            B: { type: Type.STRING }
+          }
         }
+      }
     },
     feasibility: {
-        type: Type.OBJECT,
-        properties: {
-            technicalDifficulty: { type: Type.NUMBER, description: "0-100" },
-            devTimeMonths: { type: Type.NUMBER },
-            infraCost: { type: Type.NUMBER, description: "Monthly estimated cost in USD" },
-            costBreakdown: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        item: { type: Type.STRING },
-                        cost: { type: Type.NUMBER }
-                    }
-                }
-            },
-            risks: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        risk: { type: Type.STRING },
-                        severity: { type: Type.STRING, enum: ['Low', 'Medium', 'High'] },
-                        mitigation: { type: Type.STRING }
-                    }
-                }
+      type: Type.OBJECT,
+      properties: {
+        technicalDifficulty: { type: Type.NUMBER, description: "0-100" },
+        devTimeMonths: { type: Type.NUMBER },
+        infraCost: { type: Type.NUMBER, description: "Monthly estimated cost in USD" },
+        costBreakdown: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              item: { type: Type.STRING },
+              cost: { type: Type.NUMBER }
             }
+          }
+        },
+        risks: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              risk: { type: Type.STRING },
+              severity: { type: Type.STRING, enum: ['Low', 'Medium', 'High'] },
+              mitigation: { type: Type.STRING }
+            }
+          }
         }
+      }
     },
     monetization: {
-        type: Type.OBJECT,
-        properties: {
-            strategy: { type: Type.STRING },
-            tiers: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        name: { type: Type.STRING },
-                        price: { type: Type.STRING },
-                        features: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        highlight: { type: Type.BOOLEAN }
-                    }
-                }
-            },
-            projectedMRR: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        month: { type: Type.STRING },
-                        amount: { type: Type.NUMBER }
-                    }
-                }
+      type: Type.OBJECT,
+      properties: {
+        strategy: { type: Type.STRING },
+        tiers: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              price: { type: Type.STRING },
+              features: { type: Type.ARRAY, items: { type: Type.STRING } },
+              highlight: { type: Type.BOOLEAN }
             }
+          }
+        },
+        projectedMRR: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              month: { type: Type.STRING },
+              amount: { type: Type.NUMBER }
+            }
+          }
         }
+      }
     }
   },
   required: ["marketDemand", "competitorAnalysis", "feasibility", "monetization"]
@@ -350,10 +350,10 @@ export const generateValidation = async (idea: string): Promise<ValidationData> 
 };
 
 export const generateDeepAnalysis = async (idea: string): Promise<DeepAnalysisData> => {
-    const model = "gemini-2.5-flash";
-    const response = await ai.models.generateContent({
-      model,
-      contents: `Provide a DEEP-DIVE analysis for the SaaS idea: "${idea}".
+  const model = "gemini-2.5-flash";
+  const response = await ai.models.generateContent({
+    model,
+    contents: `Provide a DEEP-DIVE analysis for the SaaS idea: "${idea}".
       
       I need 4 specific sections:
       1. Market Demand: Simulated trend data (12 months), keyword volume, and audience segments.
@@ -361,12 +361,74 @@ export const generateDeepAnalysis = async (idea: string): Promise<DeepAnalysisDa
       3. Technical Feasibility: Dev time estimates, monthly cloud cost breakdown (AWS/Vercel/Supabase), and risks.
       4. Monetization: Pricing tiers (Free, Pro, Business) and projected MRR growth for first 6 months.
       `,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: deepAnalysisSchema,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: deepAnalysisSchema,
+    }
+  });
+  return JSON.parse(cleanJson(response.text));
+};
+
+// --------------------------------------------------------
+// Action Plan Schema (30-Day Plan)
+// --------------------------------------------------------
+const actionPlanSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    phases: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          name: { type: Type.STRING, description: "Phase name like 'Validation Week', 'MVP Building', 'Beta Launch', 'First Customers'" },
+          description: { type: Type.STRING, description: "Brief description of phase goals" },
+          startDay: { type: Type.NUMBER },
+          endDay: { type: Type.NUMBER },
+          tasks: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                day: { type: Type.NUMBER, description: "Day number 1-30" },
+                title: { type: Type.STRING, description: "Short task title" },
+                description: { type: Type.STRING, description: "1-2 sentence description" },
+                estimatedTime: { type: Type.STRING, description: "Time estimate like '2 hours', '45 mins', '3 hours'" },
+                category: { type: Type.STRING, description: "One of: Research, Development, Marketing, Design, Testing, Launch" }
+              }
+            }
+          }
+        }
       }
-    });
-    return JSON.parse(cleanJson(response.text));
+    },
+    totalTasks: { type: Type.NUMBER },
+    estimatedTotalHours: { type: Type.NUMBER }
+  },
+  required: ["phases", "totalTasks", "estimatedTotalHours"]
+};
+
+export const generateActionPlan = async (idea: string): Promise<ActionPlanData> => {
+  const model = "gemini-2.5-flash";
+  const response = await ai.models.generateContent({
+    model,
+    contents: `Create a detailed 30-DAY ACTION PLAN for building and launching this SaaS idea: "${idea}".
+
+    Split into 4 phases:
+    1. **Validation Week (Days 1-7)**: Customer discovery, market research, competitor analysis, problem validation
+    2. **MVP Building (Days 8-14)**: Core feature development, basic UI, database setup, authentication
+    3. **Beta Launch (Days 15-21)**: Testing, bug fixes, onboarding flow, landing page, beta user recruitment
+    4. **First Customers (Days 22-30)**: Marketing launch, content creation, outreach, feedback loops, iteration
+
+    For each day, provide 1-2 specific, actionable tasks with realistic time estimates.
+    Categories should be: Research, Development, Marketing, Design, Testing, or Launch.
+    Make tasks practical and specific to THIS idea, not generic.
+    `,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: actionPlanSchema,
+    }
+  });
+  return JSON.parse(cleanJson(response.text));
 };
 
 export const generateBlueprint = async (idea: string): Promise<BlueprintData> => {
@@ -394,25 +456,25 @@ export const generateBlueprint = async (idea: string): Promise<BlueprintData> =>
       responseSchema: blueprintSchema,
     }
   });
-  
+
   const raw: any = JSON.parse(cleanJson(response.text));
-  
+
   const diagrams = raw.diagrams.map((d: any, i: number) => ({
-      id: `diag-${i}`,
-      title: d.title,
-      type: d.type,
-      description: d.description,
-      edges: d.edges,
-      nodes: d.nodes.map((n: any) => ({
-          id: n.id,
-          // We will determine the specialized node type in the frontend based on diagram type
-          // but we store the raw data here.
-          type: d.type === 'database' ? 'databaseNode' : d.type === 'flow' ? 'flowNode' : 'systemNode',
-          position: { x: n.x, y: n.y },
-          data: { label: n.label, iconType: n.type, attributes: n.attributes || [] }
-      }))
+    id: `diag-${i}`,
+    title: d.title,
+    type: d.type,
+    description: d.description,
+    edges: d.edges,
+    nodes: d.nodes.map((n: any) => ({
+      id: n.id,
+      // We will determine the specialized node type in the frontend based on diagram type
+      // but we store the raw data here.
+      type: d.type === 'database' ? 'databaseNode' : d.type === 'flow' ? 'flowNode' : 'systemNode',
+      position: { x: n.x, y: n.y },
+      data: { label: n.label, iconType: n.type, attributes: n.attributes || [] }
+    }))
   }));
-  
+
   return { diagrams };
 };
 
@@ -474,10 +536,10 @@ export const generateTechStack = async (idea: string): Promise<TechStackData> =>
 };
 
 export const generatePRD = async (idea: string): Promise<string> => {
-    const model = "gemini-2.5-flash";
-    const response = await ai.models.generateContent({
-      model,
-      contents: `Write a professional Product Requirements Document (PRD) for a SaaS idea: "${idea}".
+  const model = "gemini-2.5-flash";
+  const response = await ai.models.generateContent({
+    model,
+    contents: `Write a professional Product Requirements Document (PRD) for a SaaS idea: "${idea}".
       
       Output Format: Markdown.
       Structure:
@@ -490,13 +552,13 @@ export const generatePRD = async (idea: string): Promise<string> => {
       7. Future Scope
   
       Do not wrap in JSON. Just return the Markdown string.`,
-    });
-    return cleanMarkdown(response.text);
+  });
+  return cleanMarkdown(response.text);
 };
-  
+
 export const generateBuilderPrompt = async (idea: string, quizAnswers: Record<string, string>): Promise<string> => {
-    const model = "gemini-2.5-flash";
-    const prompt = `
+  const model = "gemini-2.5-flash";
+  const prompt = `
       You are an expert AI Prompt Engineer. Create a "Mega-Prompt" that I can paste into an AI Coding Assistant (like Cursor, Windsurf, or GitHub Copilot Workspace) to build this entire application from scratch.
   
       Project Idea: "${idea}"
@@ -523,43 +585,43 @@ export const generateBuilderPrompt = async (idea: string, quizAnswers: Record<st
   
       Return ONLY the prompt text, ready to copy.
     `;
-  
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-    });
-    
-    return cleanMarkdown(response.text);
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+  });
+
+  return cleanMarkdown(response.text);
 };
 
-export const generateConsultantReply = async (projectContext: string, history: {role: string, parts: {text: string}[]}[], message: string) => {
-    const chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-            systemInstruction: `You are an expert SaaS Consultant. 
+export const generateConsultantReply = async (projectContext: string, history: { role: string, parts: { text: string }[] }[], message: string) => {
+  const chat = ai.chats.create({
+    model: 'gemini-2.5-flash',
+    config: {
+      systemInstruction: `You are an expert SaaS Consultant. 
             
             Current Project Context:
             ${projectContext}
             
             Role: Be concise, insightful, and strategic. Act as a co-founder. Use the project context to provide specific advice.`
-        },
-        history: history as any
-    });
+    },
+    history: history as any
+  });
 
-    const result = await chat.sendMessage({ message });
-    return result.text;
+  const result = await chat.sendMessage({ message });
+  return result.text;
 }
 
 export const enhancePrompt = async (currentInput: string): Promise<string> => {
-    const model = "gemini-2.5-flash";
-    const response = await ai.models.generateContent({
-      model,
-      contents: `Enhance this SaaS idea prompt to be more detailed, professional, and clear for a business validator AI. 
+  const model = "gemini-2.5-flash";
+  const response = await ai.models.generateContent({
+    model,
+    contents: `Enhance this SaaS idea prompt to be more detailed, professional, and clear for a business validator AI. 
       Keep it under 3 sentences but make it sound like a solid elevator pitch.
       
       Input: "${currentInput}"
       
       Output ONLY the enhanced text.`,
-    });
-    return response.text.trim();
+  });
+  return response.text.trim();
 };
