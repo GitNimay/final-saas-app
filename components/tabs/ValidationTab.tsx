@@ -120,16 +120,6 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                         </h1>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black border border-zinc-800 text-xs text-zinc-500">
-                        <Calendar size={12} />
-                        <span>Updated now</span>
-                    </div>
-                    <button className="p-2 rounded-lg bg-black border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all">
-                        <RefreshCw size={14} />
-                    </button>
-                </div>
             </div>
 
             {/* ========== MAIN GRID ========== */}

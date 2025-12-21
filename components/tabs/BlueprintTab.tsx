@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import ReactFlow, { Background, Controls, Handle, Position, NodeProps, ReactFlowProvider, MarkerType, Edge, Node, useNodesState, useEdgesState } from 'reactflow';
+import ReactFlow, { Background, Controls, Handle, Position, NodeProps, ReactFlowProvider, MarkerType, Edge, Node, useNodesState, useEdgesState, useReactFlow } from 'reactflow';
 import { BlueprintData } from '../../types';
 import { Database, Globe, Server, Cpu, Activity, FileImage, Loader2, Mail, Info, Share2, MoreHorizontal, Layers, Zap, Code, Shield, User, ArrowRight, Network, GitBranch, Box, Signal, Wifi } from 'lucide-react';
 import { toPng, toSvg } from 'html-to-image';
@@ -228,6 +228,7 @@ interface InteractiveFlowProps {
 const InteractiveFlow: React.FC<InteractiveFlowProps> = ({ initialNodes, initialEdges, nodeTypes, isDark }) => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const { fitView } = useReactFlow();
 
     // Update nodes when initialNodes change (e.g., when switching diagrams)
     useEffect(() => {
@@ -238,6 +239,17 @@ const InteractiveFlow: React.FC<InteractiveFlowProps> = ({ initialNodes, initial
     useEffect(() => {
         setEdges(initialEdges);
     }, [initialEdges, setEdges]);
+
+    // Fit view whenever nodes change or component mounts
+    useEffect(() => {
+        if (nodes.length > 0) {
+            // Use setTimeout to ensure the DOM is fully rendered
+            const timer = setTimeout(() => {
+                fitView({ padding: 0.2, duration: 400 });
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [nodes, fitView]);
 
     return (
         <ReactFlow

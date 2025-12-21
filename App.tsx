@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { User, Project, LoadingStep, TabView, Message, KanbanColumn, UserSettings } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan } from './services/aiService';
@@ -54,6 +55,10 @@ const AVAILABLE_MODELS = [
 ];
 
 const App = () => {
+    // Router Hooks
+    const navigate = useNavigate();
+    const location = useLocation();
+
     // Notification Hook
     const { showNotification } = useNotification();
 
@@ -249,15 +254,42 @@ const App = () => {
         }
     }, [userSettings.theme]);
 
+    // URL-based navigation sync - enables browser back/forward buttons
+    useEffect(() => {
+        const path = location.pathname;
+
+        // If on home page, clear current project
+        if (path === '/' || path === '') {
+            if (currentProject) {
+                setCurrentProject(null);
+                setChatOpen(false);
+            }
+            return;
+        }
+
+        // If on project page, load the project from history
+        const projectMatch = path.match(/^\/project\/(.+)$/);
+        if (projectMatch && projectsHistory.length > 0) {
+            const projectId = projectMatch[1];
+            const project = projectsHistory.find(p => p.id === projectId);
+            if (project && (!currentProject || currentProject.id !== projectId)) {
+                setCurrentProject(project);
+                setChatOpen(false);
+            }
+        }
+    }, [location.pathname, projectsHistory]);
+
     const handleSignOut = async () => {
         if (supabase) await supabase.auth.signOut();
         setUser(null);
         setUserMenuOpen(false);
+        navigate('/login');
     };
 
     const handleExitProject = () => {
         setCurrentProject(null);
         setChatOpen(false);
+        navigate('/');
     };
 
     const handleUpdateSettings = async (newSettings: Partial<UserSettings>) => {
@@ -477,6 +509,7 @@ const App = () => {
             setCurrentProject(newProject);
             setChatOpen(false);
             setLoadingStep(LoadingStep.COMPLETE);
+            navigate(`/project/${newProject.id}`);
             await sendMessage(newProject.id, 'model', `Hello! I've analyzed "${inputToUse}". I'm ready to discuss your strategy.`);
 
             // Show project created notification
@@ -749,7 +782,7 @@ const App = () => {
                                                     key={p.id}
                                                     className="group relative flex flex-col p-3 rounded-xl hover:bg-zinc-200/50 dark:hover:bg-white/5 border border-transparent hover:border-zinc-300 dark:hover:border-white/10 transition-all cursor-pointer animate-slide-in"
                                                     style={{ animationDelay: `${i * 30}ms` }}
-                                                    onClick={() => { setCurrentProject(p); setChatOpen(false); }}
+                                                    onClick={() => { setCurrentProject(p); setChatOpen(false); navigate(`/project/${p.id}`); }}
                                                 >
                                                     <div className="flex justify-between items-start">
                                                         <span className="text-zinc-600 dark:text-zinc-400 text-sm font-medium truncate max-w-[180px] group-hover:text-black dark:group-hover:text-white transition-colors">

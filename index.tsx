@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { NotificationProvider } from './contexts/NotificationContext';
 
@@ -11,8 +12,10 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <NotificationProvider>
-      <App />
-    </NotificationProvider>
+    <BrowserRouter>
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
