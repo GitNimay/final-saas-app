@@ -654,7 +654,7 @@ const App = () => {
                         onClick={() => setShowHistorySidebar(false)}
                     />
 
-                    <div className={`fixed left-0 top-0 h-full w-72 md:w-80 bg-zinc-50/95 dark:bg-black/95 md:bg-zinc-50/90 md:dark:bg-black/20 backdrop-blur-md border-r border-zinc-200 dark:border-white/5 p-4 md:p-6 flex flex-col z-40 transition-transform duration-500 ${showHistorySidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className={`fixed left-0 top-0 h-full w-72 md:w-80 bg-white/70 dark:bg-black/60 backdrop-blur-2xl border-r border-white/20 dark:border-white/5 p-4 md:p-6 flex flex-col z-40 transition-transform duration-500 shadow-[20px_0_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-none ${showHistorySidebar ? 'translate-x-0' : '-translate-x-full'}`}>
 
                         <div className="mb-6 pl-1 mt-2 flex items-center justify-between">
                             <h2 className="text-zinc-900 dark:text-zinc-100 font-bold text-lg flex items-center gap-2 shadow-black drop-shadow-sm">
@@ -723,7 +723,7 @@ const App = () => {
                             Project History
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-2">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-2" data-lenis-prevent>
                             {(Object.entries(groupedProjects) as [string, Project[]][]).map(([group, projs]) => (
                                 projs.length > 0 && (
                                     <div key={group} className="mb-6">

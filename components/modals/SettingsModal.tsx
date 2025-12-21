@@ -44,7 +44,7 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
             <div className="w-full max-w-5xl h-[85vh] bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col md:flex-row">
 
                 {/* Sidebar */}
-                <aside className="w-full md:w-64 bg-zinc-50 dark:bg-zinc-950/50 border-r border-zinc-200 dark:border-zinc-800 p-6 flex flex-col shrink-0 overflow-y-auto">
+                <aside className="w-full md:w-64 bg-zinc-50 dark:bg-zinc-950/50 border-r border-zinc-200 dark:border-zinc-800 p-6 flex flex-col shrink-0 overflow-y-auto" data-lenis-prevent>
                     <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
                         <div className="w-6 h-6 bg-black dark:bg-white rounded-lg flex items-center justify-center">
                             <div className="w-3 h-3 bg-white dark:bg-black rounded-sm"></div>
@@ -111,7 +111,7 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8 max-w-3xl">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8 max-w-3xl" data-lenis-prevent>
 
                         {/* ACCOUNT TAB */}
                         {activeTab === 'account' && (
