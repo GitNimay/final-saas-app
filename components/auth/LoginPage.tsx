@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { ArrowRight, Loader2, Mail, Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import StarBackground from '../ui/StarBackground';
+import UnicornBackground from '../ui/UnicornBackground';
 
 const LoginPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
@@ -85,7 +85,7 @@ const LoginPage: React.FC = () => {
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center bg-black overflow-hidden font-sans text-white selection:bg-zinc-800 selection:text-white">
-            <StarBackground />
+            <UnicornBackground />
 
             {/* Vignette & Gradients */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80 pointer-events-none" />
