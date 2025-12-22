@@ -6,8 +6,7 @@ import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan } from './services/aiService';
 import { saveProject, getProjects, deleteProject, subscribeToProject, subscribeToMessages, getMessages, sendMessage, getUserSettings, saveUserSettings, syncUserProfile } from './services/projectService';
 import ParticleBackground from './components/ui/ParticleBackground';
-import PaperBackground from './components/ui/PaperBackground';
-import { WebGLShader } from './components/ui/WebGLShader';
+import { CelestialBloomShader } from './components/ui/CelestialBloomShader';
 import DotMapBackground from './components/ui/DotMapBackground';
 import ValidationTab from './components/tabs/ValidationTab';
 import BlueprintTab from './components/tabs/BlueprintTab';
@@ -654,11 +653,7 @@ const App = () => {
                     {/* However, `ReactLenis root` implies it takes over the root html scroll. */}
                     {/* Let's try wrapping the whole return and see. But let's fix the imports first as per this tool call plan. */}
 
-                    <div className="hidden dark:block">
-                        <PaperBackground />
-                    </div>
-                    {/* ... rest of the app ... */}
-                    {/* I will just return the existing structure for this tool call to fix the mismatched div I might have broken, then do a targeted wrapping in next step. */}
+                    {/* Celestial Bloom Shader is now used as the main background */}
 
 
                     <div className="fixed top-6 right-6 z-50 animate-fade-in delay-100">
@@ -843,7 +838,7 @@ const App = () => {
                     </div>
 
                     <div className={`flex-1 flex flex-col items-center justify-center p-4 z-10 relative transition-all duration-500 ${showHistorySidebar ? 'md:pl-80' : 'pl-0'}`}>
-                        <WebGLShader />
+                        <CelestialBloomShader />
                         <div className="flex flex-col items-center justify-center max-w-2xl w-full px-4 text-center z-10 relative">
                             <TextReveal
                                 text={`Good to See You, ${userSettings.displayName.split(' ')[0]}!`}
