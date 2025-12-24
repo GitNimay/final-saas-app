@@ -288,6 +288,7 @@ const App = () => {
     const handleExitProject = () => {
         setCurrentProject(null);
         setChatOpen(false);
+        setLoadingStep(LoadingStep.IDLE);
         navigate('/');
     };
 
