@@ -41,7 +41,12 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm p-4 md:p-8 animate-fade-in">
-            <div className="w-full max-w-5xl h-[85vh] bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col md:flex-row">
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="settings-modal-title"
+                className="w-full max-w-5xl h-[85vh] bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col md:flex-row"
+            >
 
                 {/* Sidebar */}
                 <aside className="w-full md:w-64 bg-zinc-50 dark:bg-zinc-950/50 border-r border-zinc-200 dark:border-zinc-800 p-6 flex flex-col shrink-0 overflow-y-auto" data-lenis-prevent>
@@ -94,7 +99,7 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                     {/* Header */}
                     <div className="shrink-0 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-8 py-6 flex justify-between items-center">
                         <div>
-                            <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">
+                            <h1 id="settings-modal-title" className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">
                                 {activeTab === 'account' && 'Account Settings'}
                                 {activeTab === 'preferences' && 'App Preferences'}
                                 {activeTab === 'agent' && 'Agent Personalization'}
@@ -133,10 +138,11 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                                 {/* Form Fields */}
                                 <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Display Name</label>
+                                        <label htmlFor="display-name" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Display Name</label>
                                         <div className="flex items-center gap-3 px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus-within:border-indigo-500 transition-colors">
                                             <UserIcon size={16} className="text-zinc-500" />
                                             <input
+                                                id="display-name"
                                                 value={localName}
                                                 onChange={(e) => setLocalName(e.target.value)}
                                                 className="bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 w-full font-medium"
@@ -145,10 +151,11 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Job Title</label>
+                                        <label htmlFor="job-title" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Job Title</label>
                                         <div className="flex items-center gap-3 px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus-within:border-indigo-500 transition-colors">
                                             <Briefcase size={16} className="text-zinc-500" />
                                             <input
+                                                id="job-title"
                                                 value={localJob}
                                                 onChange={(e) => setLocalJob(e.target.value)}
                                                 className="bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 w-full font-medium"
@@ -157,10 +164,11 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                                     </div>
 
                                     <div className="space-y-2 md:col-span-2">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Email Address</label>
+                                        <label htmlFor="email" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Email Address</label>
                                         <div className="flex items-center gap-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-xl cursor-not-allowed opacity-70">
                                             <Mail size={16} className="text-zinc-600" />
                                             <input
+                                                id="email"
                                                 value={user.email}
                                                 readOnly
                                                 className="bg-transparent border-none outline-none text-sm text-zinc-500 w-full font-medium cursor-not-allowed"
@@ -173,17 +181,17 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                                 {/* Location & Timezone */}
                                 <section className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-zinc-200 dark:border-zinc-800/50">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">City</label>
+                                        <label htmlFor="city" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">City</label>
                                         <div className="flex items-center gap-3 px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl">
                                             <MapPin size={16} className="text-zinc-500" />
-                                            <input defaultValue="New York" className="bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 w-full font-medium" />
+                                            <input id="city" defaultValue="New York" className="bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 w-full font-medium" />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Timezone</label>
+                                        <label htmlFor="timezone" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Timezone</label>
                                         <div className="flex items-center gap-3 px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl">
                                             <Clock size={16} className="text-zinc-500" />
-                                            <select className="bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 w-full font-medium appearance-none">
+                                            <select id="timezone" className="bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 w-full font-medium appearance-none">
                                                 <option>UTC/GMT -4 hours</option>
                                                 <option>UTC/GMT +1 hours</option>
                                                 <option>UTC/GMT +8 hours</option>
@@ -323,12 +331,15 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, user, settings, onUpd
                                                 <div className="text-xs text-zinc-500">Receive updates about your projects.</div>
                                             </div>
                                         </div>
-                                        <div
+                                        <button
+                                            role="switch"
+                                            aria-checked={settings.notifications}
+                                            aria-label="Push Notifications"
                                             onClick={() => onUpdateSettings({ notifications: !settings.notifications })}
-                                            className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${settings.notifications ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                                            className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900 ${settings.notifications ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
                                         >
                                             <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${settings.notifications ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                                        </div>
+                                        </button>
                                     </div>
                                 </section>
 
