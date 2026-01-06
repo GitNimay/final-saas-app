@@ -6,7 +6,7 @@ import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan } from './services/aiService';
 import { saveProject, getProjects, deleteProject, subscribeToProject, subscribeToMessages, getMessages, sendMessage, getUserSettings, saveUserSettings, syncUserProfile } from './services/projectService';
 import ParticleBackground from './components/ui/ParticleBackground';
-import { CelestialBloomShader } from './components/ui/CelestialBloomShader';
+import { DottedSurface } from './components/ui/DottedSurface';
 import DotMapBackground from './components/ui/DotMapBackground';
 import ValidationTab from './components/tabs/ValidationTab';
 import BlueprintTab from './components/tabs/BlueprintTab';
@@ -839,7 +839,7 @@ const App = () => {
                     </div>
 
                     <div className={`flex-1 flex flex-col items-center justify-center p-4 z-10 relative transition-all duration-500 ${showHistorySidebar ? 'md:pl-80' : 'pl-0'}`}>
-                        <CelestialBloomShader />
+                        <DottedSurface isDark={isDarkMode} />
                         <div className="flex flex-col items-center justify-center max-w-2xl w-full px-4 text-center z-10 relative">
                             <TextReveal
                                 text={`Good to See You, ${userSettings.displayName.split(' ')[0]}!`}
@@ -885,7 +885,7 @@ const App = () => {
                                         style={{ height: 'auto' }}
                                     />
 
-                                    <div className="absolute right-2 top-3 flex items-center gap-2">
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                         <button
                                             onClick={handleEnhance}
                                             disabled={isEnhancing || !ideaInput.trim()}
