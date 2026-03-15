@@ -9,7 +9,7 @@ export interface ModelConfig {
   id: string;
   name: string;
   active: boolean;
-  provider: 'gemini' | 'groq' | 'nvidia';
+  provider: 'gemini' | 'groq';
 }
 
 const cleanJson = (text: string) => {
@@ -100,12 +100,10 @@ const callAIModel = async (
     }
   }
 
-  const apiKey = modelConfig.provider === 'groq' 
-    ? process.env.VITE_GROQ_API_KEY 
-    : process.env.VITE_NVIDIA_API_KEY;
+  const apiKey = process.env.VITE_GROQ_API_KEY;
 
   if (!apiKey) {
-    throw new Error(`API key not configured for ${modelConfig.provider}`);
+    throw new Error(`API key not configured for Groq`);
   }
 
   const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
