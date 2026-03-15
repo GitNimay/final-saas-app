@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { User, Project, LoadingStep, TabView, Message, KanbanColumn, UserSettings } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
-import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan } from './services/aiService';
+import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan, ModelConfig } from './services/aiService';
 import { saveProject, getProjects, deleteProject, subscribeToProject, subscribeToMessages, getMessages, sendMessage, getUserSettings, saveUserSettings, syncUserProfile } from './services/projectService';
 import ParticleBackground from './components/ui/ParticleBackground';
 import { DottedSurface } from './components/ui/DottedSurface';
@@ -46,11 +46,11 @@ const SUGGESTED_QUESTIONS = [
     "How can I differentiate from the top competitors?"
 ];
 
-const AVAILABLE_MODELS = [
-    { id: 'gemini-flash', name: 'Gemini 2.5 Flash', active: true },
-    { id: 'gemini-pro', name: 'Gemini 2.5 Pro', active: false },
-    { id: 'gpt-4o', name: 'GPT-4o', active: false },
-    { id: 'claude-3-5', name: 'Claude 3.5 Sonnet', active: false },
+const AVAILABLE_MODELS: ModelConfig[] = [
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', active: true, provider: 'gemini' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', active: true, provider: 'gemini' },
+    { id: 'llama-3.3-70b-versatile', name: 'Groq Llama 3.3 70B', active: true, provider: 'groq' },
+    { id: 'llama-3.1-8b-instant', name: 'Groq Llama 3.1 8B', active: true, provider: 'groq' },
 ];
 
 const App = () => {
@@ -406,7 +406,7 @@ const App = () => {
         if (!ideaInput.trim()) return;
         setIsEnhancing(true);
         try {
-            const enhanced = await enhancePrompt(ideaInput);
+            const enhanced = await enhancePrompt(ideaInput, selectedModel);
             setIdeaInput(enhanced);
             // Resize textarea after enhancement
             setTimeout(() => {
@@ -463,29 +463,29 @@ const App = () => {
 
         try {
             if (stopGeneration.current) return;
-            const validation = await generateValidation(inputToUse);
+            const validation = await generateValidation(inputToUse, selectedModel);
             setActualProgress(20); // Step 1 complete: 20%
 
             if (stopGeneration.current) return;
             setLoadingStep(LoadingStep.DEEP_DIVING);
-            const deepAnalysis = await generateDeepAnalysis(inputToUse);
+            const deepAnalysis = await generateDeepAnalysis(inputToUse, selectedModel);
             setActualProgress(40); // Step 2 complete: 40%
 
             if (stopGeneration.current) return;
             setLoadingStep(LoadingStep.BLUEPRINTING);
-            const blueprint = await generateBlueprint(inputToUse);
+            const blueprint = await generateBlueprint(inputToUse, selectedModel);
             setActualProgress(60); // Step 3 complete: 60%
 
             if (stopGeneration.current) return;
             setLoadingStep(LoadingStep.ROADMAPPING);
-            const roadmap = await generateRoadmap(inputToUse);
+            const roadmap = await generateRoadmap(inputToUse, selectedModel);
             setActualProgress(80); // Step 4 complete: 80%
 
             if (stopGeneration.current) return;
             setLoadingStep(LoadingStep.COMPILING);
             const [techStack, prd] = await Promise.all([
-                generateTechStack(inputToUse),
-                generatePRD(inputToUse)
+                generateTechStack(inputToUse, selectedModel),
+                generatePRD(inputToUse, selectedModel)
             ]);
             setActualProgress(100); // Step 5 complete: 100%
 
@@ -545,7 +545,7 @@ const App = () => {
             Key Market Stats: TAM ${currentProject.data.validation?.marketStats?.tam}M
             Tech Stack: ${currentProject.data.techStack?.technologies.map(t => t.name).join(', ') || 'N/A'}
         `;
-            const reply = await generateConsultantReply(context, formattedHistory, text);
+            const reply = await generateConsultantReply(context, formattedHistory, text, selectedModel);
             await sendMessage(currentProject.id, 'model', reply);
 
         } catch (e) {
@@ -1317,7 +1317,7 @@ const App = () => {
                             )}
                             {activeTab === 'actionPlan' && currentProject && (
                                 <PageTransition key="actionPlan" variant="slideUp">
-                                    <ActionPlanTab projectIdea={currentProject.description} existingData={currentProject.data.actionPlan} onUpdate={(data) => updateProjectData('actionPlan', data)} />
+                                    <ActionPlanTab projectIdea={currentProject.description} existingData={currentProject.data.actionPlan} onUpdate={(data) => updateProjectData('actionPlan', data)} selectedModel={selectedModel} />
                                 </PageTransition>
                             )}
                             {activeTab === 'techstack' && currentProject?.data.techStack && (
@@ -1327,12 +1327,12 @@ const App = () => {
                             )}
                             {activeTab === 'prd' && currentProject && (
                                 <PageTransition key="prd" variant="slideUp">
-                                    <PRDTab projectIdea={currentProject.description} existingPRD={currentProject.data.prd} onUpdate={(prd) => updateProjectData('prd', prd)} />
+                                    <PRDTab projectIdea={currentProject.description} existingPRD={currentProject.data.prd} onUpdate={(prd) => updateProjectData('prd', prd)} selectedModel={selectedModel} />
                                 </PageTransition>
                             )}
                             {activeTab === 'builder' && currentProject && (
                                 <PageTransition key="builder" variant="slideUp">
-                                    <BuilderTab projectIdea={currentProject.description} savedData={currentProject.data.builder} onUpdate={(data) => updateProjectData('builder', data)} />
+                                    <BuilderTab projectIdea={currentProject.description} savedData={currentProject.data.builder} onUpdate={(data) => updateProjectData('builder', data)} selectedModel={selectedModel} />
                                 </PageTransition>
                             )}
                         </AnimatePresence>

@@ -1,11 +1,17 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { BlueprintData, KanbanBoard, MindMapData, TechStackData, ValidationData, DeepAnalysisData, ActionPlanData } from "../types";
+import { BlueprintData, KanbanBoard, TechStackData, ValidationData, DeepAnalysisData, ActionPlanData } from "../types";
 import { INITIAL_KANBAN_COLUMNS, INITIAL_COLUMN_ORDER } from "../constants";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
-// Helper to strip markdown code blocks if AI adds them
+export interface ModelConfig {
+  id: string;
+  name: string;
+  active: boolean;
+  provider: 'gemini' | 'groq' | 'nvidia';
+}
+
 const cleanJson = (text: string) => {
   return text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 };
@@ -14,9 +20,154 @@ const cleanMarkdown = (text: string) => {
   return text.replace(/```markdown\n?/g, '').replace(/```\n?/g, '').trim();
 }
 
-// --------------------------------------------------------
-// Validation Schema
-// --------------------------------------------------------
+const convertSchemaToJsonSchema = (schema: Schema): any => {
+  const convertType = (type: any): string => {
+    if (type === Type.STRING) return 'string';
+    if (type === Type.NUMBER) return 'number';
+    if (type === Type.INTEGER) return 'integer';
+    if (type === Type.BOOLEAN) return 'boolean';
+    if (type === Type.ARRAY) return 'array';
+    if (type === Type.OBJECT) return 'object';
+    return 'string';
+  };
+
+  const convert = (s: any): any => {
+    if (!s) return undefined;
+    if (typeof s === 'string') return convertType(s);
+    if (Array.isArray(s)) return s.map(convert);
+    if (typeof s === 'object') {
+      const result: any = {};
+      if (s.type) result.type = convertType(s.type);
+      if (s.properties) {
+        result.properties = {};
+        for (const key in s.properties) {
+          result.properties[key] = convert(s.properties[key]);
+        }
+      }
+      if (s.items) result.items = convert(s.items);
+      if (s.description) result.description = s.description;
+      if (s.enum) result.enum = s.enum;
+      return result;
+    }
+    return s;
+  };
+
+  return convert(schema);
+};
+
+const callAIModel = async (
+  modelConfig: ModelConfig,
+  contents: string,
+  options: {
+    systemInstruction?: string;
+    schema?: Schema;
+    useJsonResponse?: boolean;
+    history?: { role: string; content: string }[];
+  } = {}
+): Promise<string> => {
+  console.log('callAIModel:', modelConfig.id, modelConfig.provider);
+  
+  const { systemInstruction, schema, useJsonResponse = false, history } = options;
+
+  if (modelConfig.provider === 'gemini') {
+    const model = modelConfig.id;
+    const config: any = {};
+    
+    if (useJsonResponse && schema) {
+      config.responseMimeType = "application/json";
+      config.responseSchema = schema;
+    }
+    if (systemInstruction) {
+      config.systemInstruction = contents;
+      contents = '';
+    }
+
+    if (history && history.length > 0) {
+      const chat = ai.chats.create({
+        model,
+        config: { systemInstruction },
+        history: history as any
+      });
+      const result = await chat.sendMessage({ message: contents });
+      return result.text;
+    } else {
+      const response = await ai.models.generateContent({
+        model,
+        contents: systemInstruction ? `${systemInstruction}\n\n${contents}` : contents,
+        config
+      });
+      return response.text;
+    }
+  }
+
+  const apiKey = modelConfig.provider === 'groq' 
+    ? process.env.VITE_GROQ_API_KEY 
+    : process.env.VITE_NVIDIA_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(`API key not configured for ${modelConfig.provider}`);
+  }
+
+  const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+
+  const messages: any[] = [];
+  
+  let finalSystemInstruction = systemInstruction || '';
+  
+  if (useJsonResponse && schema) {
+    const jsonSchema = convertSchemaToJsonSchema(schema);
+    finalSystemInstruction += `\n\nYou MUST output valid JSON adhering exactly to this schema:\n${JSON.stringify(jsonSchema, null, 2)}`;
+  }
+
+  if (finalSystemInstruction) {
+    messages.push({ role: 'system', content: finalSystemInstruction });
+  }
+
+  if (history) {
+    messages.push(...history);
+  }
+
+  messages.push({ role: 'user', content: contents });
+
+  const requestBody: any = {
+    model: modelConfig.id,
+    messages,
+    temperature: 0.7,
+  };
+
+  if (useJsonResponse) {
+    requestBody.response_format = { type: 'json_object' };
+  }
+
+  console.log('Making request to:', endpoint, 'with model:', modelConfig.id);
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  console.log('Response status:', response.status);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('API Error:', errorText);
+    throw new Error(`API call failed: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.choices || !data.choices[0]) {
+    console.error('Invalid response:', data);
+    throw new Error('Invalid API response');
+  }
+  
+  return data.choices[0].message.content;
+};
+
 const validationSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -77,9 +228,6 @@ const validationSchema: Schema = {
   required: ["projectTitle", "viabilityScore", "summary", "radarData", "revenueData", "marketStats", "swot", "competitors"]
 };
 
-// --------------------------------------------------------
-// Blueprint Schema
-// --------------------------------------------------------
 const blueprintSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -124,9 +272,6 @@ const blueprintSchema: Schema = {
   required: ["diagrams"]
 };
 
-// --------------------------------------------------------
-// Kanban Schema
-// --------------------------------------------------------
 const kanbanSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -144,9 +289,6 @@ const kanbanSchema: Schema = {
   }
 };
 
-// --------------------------------------------------------
-// Tech Stack Schema
-// --------------------------------------------------------
 const techStackSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -167,7 +309,6 @@ const techStackSchema: Schema = {
     auditReport: { type: Type.STRING, description: "Markdown audit of the stack" },
     diagram: {
       type: Type.OBJECT,
-      description: "A node-link graph showing how these technologies connect in the architecture.",
       properties: {
         nodes: {
           type: Type.ARRAY,
@@ -196,9 +337,6 @@ const techStackSchema: Schema = {
   }
 };
 
-// --------------------------------------------------------
-// Deep Analysis Schema
-// --------------------------------------------------------
 const deepAnalysisSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -324,54 +462,6 @@ const deepAnalysisSchema: Schema = {
   required: ["marketDemand", "competitorAnalysis", "feasibility", "monetization"]
 };
 
-
-export const generateValidation = async (idea: string): Promise<ValidationData> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Analyze this SaaS idea: "${idea}". Provide a comprehensive business validation report.
-    
-    Structure the response for a modern dashboard display:
-    1. Project Title: Short, catchy name.
-    2. Viability Score: 0-100 (Be realistic).
-    3. Summary: A short, punchy 2-sentence strategic verdict on WHY it is viable or risky. No fluff.
-    4. Market Stats: TAM, SAM, SOM (Just numbers in Millions).
-    5. Revenue Data: 5-year projection array with 'revenue' and 'expenses' values (growing logically for SaaS).
-    6. Radar Data: 6 key metrics (e.g., 'Market Demand', 'Tech Feasibility', 'Competition', 'Scalability', 'Legal', 'Moat') with scores 0-100.
-    7. SWOT: Short bullet points (max 4 per category).
-    8. Competitors: List 4 specific real or archetypal competitors. Pricing should be short (e.g. '$10/mo'). Gap should be 2-3 words (e.g. 'Poor UI', 'No API').
-    `,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: validationSchema,
-    }
-  });
-  return JSON.parse(cleanJson(response.text));
-};
-
-export const generateDeepAnalysis = async (idea: string): Promise<DeepAnalysisData> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Provide a DEEP-DIVE analysis for the SaaS idea: "${idea}".
-      
-      I need 4 specific sections:
-      1. Market Demand: Simulated trend data (12 months), keyword volume, and audience segments.
-      2. Competitor Feature Matrix: Comparison table against 2 specific real or archetypal competitors.
-      3. Technical Feasibility: Dev time estimates, monthly cloud cost breakdown (AWS/Vercel/Supabase), and risks.
-      4. Monetization: Pricing tiers (Free, Pro, Business) and projected MRR growth for first 6 months.
-      `,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: deepAnalysisSchema,
-    }
-  });
-  return JSON.parse(cleanJson(response.text));
-};
-
-// --------------------------------------------------------
-// Action Plan Schema (30-Day Plan)
-// --------------------------------------------------------
 const actionPlanSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -407,57 +497,66 @@ const actionPlanSchema: Schema = {
   required: ["phases", "totalTasks", "estimatedTotalHours"]
 };
 
-export const generateActionPlan = async (idea: string): Promise<ActionPlanData> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Create a detailed 30-DAY ACTION PLAN for building and launching this SaaS idea: "${idea}".
-
-    Split into 4 phases:
-    1. **Validation Week (Days 1-7)**: Customer discovery, market research, competitor analysis, problem validation
-    2. **MVP Building (Days 8-14)**: Core feature development, basic UI, database setup, authentication
-    3. **Beta Launch (Days 15-21)**: Testing, bug fixes, onboarding flow, landing page, beta user recruitment
-    4. **First Customers (Days 22-30)**: Marketing launch, content creation, outreach, feedback loops, iteration
-
-    For each day, provide 1-2 specific, actionable tasks with realistic time estimates.
-    Categories should be: Research, Development, Marketing, Design, Testing, or Launch.
-    Make tasks practical and specific to THIS idea, not generic.
-    `,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: actionPlanSchema,
-    }
+export const generateValidation = async (idea: string, modelConfig: ModelConfig): Promise<ValidationData> => {
+  console.log('generateValidation called');
+  const contents = `Analyze this SaaS idea: "${idea}". Provide a comprehensive business validation report.
+  1. Project Title: Short, catchy name.
+  2. Viability Score: 0-100 (Be realistic).
+  3. Summary: A short, punchy 2-sentence strategic verdict.
+  4. Market Stats: TAM, SAM, SOM (Just numbers in Millions).
+  5. Revenue Data: 5-year projection array with 'revenue' and 'expenses'.
+  6. Radar Data: 6 key metrics with scores 0-100.
+  7. SWOT: Short bullet points (max 4 per category).
+  8. Competitors: List 4 specific competitors.`;
+  
+  const response = await callAIModel(modelConfig, contents, {
+    schema: validationSchema,
+    useJsonResponse: true
   });
-  return JSON.parse(cleanJson(response.text));
+  
+  return JSON.parse(cleanJson(response));
 };
 
-export const generateBlueprint = async (idea: string): Promise<BlueprintData> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Create 3 distinct technical architecture diagrams for: "${idea}".
-    
-    1. System Architecture: High-level microservices/cloud view (Client -> Gateway -> Services -> DB). Use at least 8-10 nodes.
-       - Nodes should have 'attributes' listing key technologies (e.g. "React", "Node.js", "Redis").
-    
-    2. Database Schema: ERD style. Entities as nodes (Users, Subscriptions, etc). Show relationships. Use at least 6-8 nodes.
-       - IMPORTANT: Use 'attributes' to list 3-5 key columns per table (e.g. "id: uuid", "email: varchar").
+export const generateDeepAnalysis = async (idea: string, modelConfig: ModelConfig): Promise<DeepAnalysisData> => {
+  const contents = `Provide a DEEP-DIVE analysis for the SaaS idea: "${idea}".
+  1. Market Demand: Simulated trend data (12 months), keyword volume, and audience segments.
+  2. Competitor Feature Matrix: Comparison table against 2 competitors.
+  3. Technical Feasibility: Dev time estimates, monthly cloud cost breakdown, and risks.
+  4. Monetization: Pricing tiers (Free, Pro, Business) and projected MRR growth for first 6 months.`;
+  
+  const response = await callAIModel(modelConfig, contents, {
+    schema: deepAnalysisSchema,
+    useJsonResponse: true
+  });
+  
+  return JSON.parse(cleanJson(response));
+};
 
-    3. User Flow: A sequence diagram style showing a core user journey step-by-step. Use at least 6-8 nodes.
-       - Use 'attributes' to describe the action briefly.
+export const generateActionPlan = async (idea: string, modelConfig: ModelConfig): Promise<ActionPlanData> => {
+  const contents = `Create a detailed 30-DAY ACTION PLAN for: "${idea}".
+  4 phases: Validation Week (1-7), MVP Building (8-14), Beta Launch (15-21), First Customers (22-30).
+  Each day: 1-2 specific tasks with time estimates. Categories: Research, Development, Marketing, Design, Testing, Launch.`;
+  
+  const response = await callAIModel(modelConfig, contents, {
+    schema: actionPlanSchema,
+    useJsonResponse: true
+  });
+  
+  return JSON.parse(cleanJson(response));
+};
 
-    For all diagrams, assign logical X/Y coordinates to avoid overlap.
-    For System: Left-to-Right flow.
-    For Database: Cluster related tables.
-    For User Flow: Top-to-Bottom or Left-to-Right.
-    `,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: blueprintSchema,
-    }
+export const generateBlueprint = async (idea: string, modelConfig: ModelConfig): Promise<BlueprintData> => {
+  const contents = `Create 3 technical architecture diagrams for: "${idea}".
+  1. System Architecture: Client -> Gateway -> Services -> DB (8-10 nodes).
+  2. Database Schema: ERD style, 6-8 tables with columns.
+  3. User Flow: Sequence diagram, 6-8 steps.`;
+  
+  const response = await callAIModel(modelConfig, contents, {
+    schema: blueprintSchema,
+    useJsonResponse: true
   });
 
-  const raw: any = JSON.parse(cleanJson(response.text));
+  const raw: any = JSON.parse(cleanJson(response));
 
   const diagrams = raw.diagrams.map((d: any, i: number) => ({
     id: `diag-${i}`,
@@ -467,8 +566,6 @@ export const generateBlueprint = async (idea: string): Promise<BlueprintData> =>
     edges: d.edges,
     nodes: d.nodes.map((n: any) => ({
       id: n.id,
-      // We will determine the specialized node type in the frontend based on diagram type
-      // but we store the raw data here.
       type: d.type === 'database' ? 'databaseNode' : d.type === 'flow' ? 'flowNode' : 'systemNode',
       position: { x: n.x, y: n.y },
       data: { label: n.label, iconType: n.type, attributes: n.attributes || [] }
@@ -478,19 +575,16 @@ export const generateBlueprint = async (idea: string): Promise<BlueprintData> =>
   return { diagrams };
 };
 
-export const generateRoadmap = async (idea: string): Promise<KanbanBoard> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Create a project roadmap for "${idea}". Generate 10-15 tasks across Backlog, To Do, and In Progress.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: kanbanSchema,
-    }
+export const generateRoadmap = async (idea: string, modelConfig: ModelConfig): Promise<KanbanBoard> => {
+  const contents = `Create a project roadmap for "${idea}". Generate 10-15 tasks across Backlog, To Do, and In Progress.`;
+  
+  const response = await callAIModel(modelConfig, contents, {
+    schema: kanbanSchema,
+    useJsonResponse: true
   });
 
-  const raw: any = JSON.parse(cleanJson(response.text));
-  const board = JSON.parse(JSON.stringify(INITIAL_KANBAN_COLUMNS)); // Deep copy const
+  const raw: any = JSON.parse(cleanJson(response));
+  const board = JSON.parse(JSON.stringify(INITIAL_KANBAN_COLUMNS));
 
   raw.tasks.forEach((task: any, index: number) => {
     const colMap: Record<string, string> = {
@@ -511,117 +605,55 @@ export const generateRoadmap = async (idea: string): Promise<KanbanBoard> => {
   return { columns: board, columnOrder: INITIAL_COLUMN_ORDER };
 };
 
-export const generateTechStack = async (idea: string): Promise<TechStackData> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Recommend a modern tech stack for "${idea}". 
-    
-    Return a list of 8-12 specific technologies including:
-    - Frameworks (React, Vue, Next.js, Flutter)
-    - Languages (TypeScript, Python)
-    - Design Tools (Figma, Adobe XD)
-    - Backend/DB (Node.js, PostgreSQL, Supabase)
-    
-    Also generate a "diagram" (nodes and edges) showing how these technologies connect in the architecture (e.g. React -> Node.js -> Postgres).
-    Include correct documentation URLs.
-    Include specific brand hex colors (e.g. React #61DAFB).
-    `,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: techStackSchema,
-    }
+export const generateTechStack = async (idea: string, modelConfig: ModelConfig): Promise<TechStackData> => {
+  const contents = `Recommend a modern tech stack for "${idea}". Return 8-12 technologies with name, category, docs URL, description, and hex color.`;
+  
+  const response = await callAIModel(modelConfig, contents, {
+    schema: techStackSchema,
+    useJsonResponse: true
   });
-  return JSON.parse(cleanJson(response.text));
+  
+  return JSON.parse(cleanJson(response));
 };
 
-export const generatePRD = async (idea: string): Promise<string> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Write a professional Product Requirements Document (PRD) for a SaaS idea: "${idea}".
-      
-      Output Format: Markdown.
-      Structure:
-      1. Executive Summary
-      2. Problem Statement
-      3. Target Audience (Personas)
-      4. Functional Requirements (User Stories)
-      5. Non-Functional Requirements (Security, Performance)
-      6. UX/UI Guidelines
-      7. Future Scope
+export const generatePRD = async (idea: string, modelConfig: ModelConfig): Promise<string> => {
+  const contents = `Write a professional PRD for: "${idea}". Format: Markdown. Sections: Executive Summary, Problem Statement, Target Audience, Functional Requirements, Non-Functional Requirements, UX/UI Guidelines, Future Scope.`;
   
-      Do not wrap in JSON. Just return the Markdown string.`,
-  });
-  return cleanMarkdown(response.text);
+  const response = await callAIModel(modelConfig, contents);
+  return cleanMarkdown(response);
 };
 
-export const generateBuilderPrompt = async (idea: string, quizAnswers: Record<string, string>): Promise<string> => {
-  const model = "gemini-2.5-flash";
-  const prompt = `
-      You are an expert AI Prompt Engineer. Create a "Mega-Prompt" that I can paste into an AI Coding Assistant (like Cursor, Windsurf, or GitHub Copilot Workspace) to build this entire application from scratch.
-  
-      Project Idea: "${idea}"
-      
-      Technical Constraints (User selected):
-      - Frontend: ${quizAnswers['Frontend Framework']}
-      - Backend: ${quizAnswers['Backend Strategy']}
-      - Database: ${quizAnswers['Database']}
-      - Authentication: ${quizAnswers['Authentication']}
-      - Styling: ${quizAnswers['Styling Strategy']}
-      - Deployment: ${quizAnswers['Deployment']}
-  
-      The output prompt should be structured as follows:
-      1. **Role & Goal**: Tell the AI it is a Senior Fullstack Engineer building a production-ready app.
-      2. **Tech Stack Enforced**: Strictly list the chosen technologies.
-      3. **Project Structure**: Suggest a file structure appropriate for the framework.
-      4. **Step-by-Step Implementation Plan**:
-         - Setup (Init repo, install dependencies)
-         - Database Setup (Schema, Connection)
-         - Authentication Implementation
-         - Core Features (List 3-4 core features typical for this idea)
-         - UI Implementation
-      5. **Coding Standards**: Rules for Typescript, Error Handling, Responsive Design.
-  
-      Return ONLY the prompt text, ready to copy.
-    `;
+export const generateBuilderPrompt = async (idea: string, quizAnswers: Record<string, string>, modelConfig: ModelConfig): Promise<string> => {
+  const contents = `Create a "Mega-Prompt" for AI Coding Assistant to build: "${idea}". Tech: ${JSON.stringify(quizAnswers)}. Structure: Role, Tech Stack, Project Structure, Implementation Plan, Coding Standards.`;
 
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-  });
-
-  return cleanMarkdown(response.text);
+  const response = await callAIModel(modelConfig, contents);
+  return cleanMarkdown(response);
 };
 
-export const generateConsultantReply = async (projectContext: string, history: { role: string, parts: { text: string }[] }[], message: string) => {
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: `You are an expert SaaS Consultant. 
-            
-            Current Project Context:
-            ${projectContext}
-            
-            Role: Be concise, insightful, and strategic. Act as a co-founder. Use the project context to provide specific advice.`
-    },
-    history: history as any
-  });
+export const generateConsultantReply = async (
+  projectContext: string, 
+  history: { role: string, parts: { text: string }[] }[], 
+  message: string,
+  modelConfig: ModelConfig
+) => {
+  const systemInstruction = `You are an expert SaaS Consultant. Context: ${projectContext}. Be concise, insightful, strategic.`;
 
-  const result = await chat.sendMessage({ message });
-  return result.text;
-}
+  const openAiHistory = history.map(h => ({
+    role: h.role === 'model' ? 'assistant' : h.role,
+    content: h.parts[0]?.text || ''
+  }));
 
-export const enhancePrompt = async (currentInput: string): Promise<string> => {
-  const model = "gemini-2.5-flash";
-  const response = await ai.models.generateContent({
-    model,
-    contents: `Enhance this SaaS idea prompt to be more detailed, professional, and clear for a business validator AI. 
-      Keep it under 3 sentences but make it sound like a solid elevator pitch.
-      
-      Input: "${currentInput}"
-      
-      Output ONLY the enhanced text.`,
+  const response = await callAIModel(modelConfig, message, { 
+    systemInstruction,
+    history: openAiHistory
   });
-  return response.text.trim();
+  
+  return response;
+};
+
+export const enhancePrompt = async (currentInput: string, modelConfig: ModelConfig): Promise<string> => {
+  const contents = `Enhance this SaaS idea: "${currentInput}". Keep under 3 sentences. Make it sound like a solid elevator pitch.`;
+  
+  const response = await callAIModel(modelConfig, contents);
+  return response.trim();
 };

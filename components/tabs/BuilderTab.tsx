@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { generateBuilderPrompt } from '../../services/aiService';
+import { generateBuilderPrompt, ModelConfig } from '../../services/aiService';
 import { ArrowRight, Check, Code, Database, Globe, Layout, Lock, Server, Terminal, Copy, Loader2, Sparkles, ChevronLeft, Layers, Play, Settings } from 'lucide-react';
 
 interface Props {
   projectIdea: string;
   savedData?: { prompt: string; answers: Record<string, string> };
   onUpdate: (data: { prompt: string; answers: Record<string, string> }) => void;
+  selectedModel: ModelConfig;
 }
 
 const QUESTIONS = [
@@ -120,7 +121,7 @@ const QUESTIONS = [
   }
 ];
 
-const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate }) => {
+const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selectedModel }) => {
   // Initialize step based on how many answers we already have
   const initialAnswers = savedData?.answers || {};
   const initialStep = Object.keys(initialAnswers).length > 0 
@@ -215,7 +216,7 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate }) => {
              readableAnswers[label] = Array.isArray(value) ? value.join(', ') : value;
           });
 
-          const result = await generateBuilderPrompt(projectIdea, readableAnswers);
+          const result = await generateBuilderPrompt(projectIdea, readableAnswers, selectedModel);
           setPrompt(result);
           
           // Save Final Result to DB

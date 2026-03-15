@@ -2,16 +2,17 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Copy, Check, FileText, Loader2, RefreshCw } from 'lucide-react';
-import { generatePRD } from '../../services/aiService';
+import { generatePRD, ModelConfig } from '../../services/aiService';
 import AnimatedSection from '../ui/AnimatedSection';
 
 interface Props {
   projectIdea: string;
   existingPRD?: string;
   onUpdate: (prd: string) => void;
+  selectedModel: ModelConfig;
 }
 
-const PRDTab: React.FC<Props> = ({ projectIdea, existingPRD, onUpdate }) => {
+const PRDTab: React.FC<Props> = ({ projectIdea, existingPRD, onUpdate, selectedModel }) => {
   const [content, setContent] = useState(existingPRD || '');
   const [loading, setLoading] = useState(!existingPRD);
   const [copied, setCopied] = useState(false);
@@ -25,7 +26,7 @@ const PRDTab: React.FC<Props> = ({ projectIdea, existingPRD, onUpdate }) => {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const prd = await generatePRD(projectIdea);
+      const prd = await generatePRD(projectIdea, selectedModel);
       setContent(prd);
       onUpdate(prd);
     } catch (e) {

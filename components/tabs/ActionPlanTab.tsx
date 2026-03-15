@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ActionPlanData, ActionPlanTask } from '../../types';
-import { generateActionPlan } from '../../services/aiService';
+import { generateActionPlan, ModelConfig } from '../../services/aiService';
 import {
     Calendar, Clock, CheckCircle2, Circle, ChevronDown, ChevronRight,
     RefreshCw, Loader2, Target, Code2, Megaphone, Palette, TestTube, Rocket,
@@ -13,6 +13,7 @@ interface Props {
     projectIdea: string;
     existingData?: ActionPlanData;
     onUpdate: (data: ActionPlanData) => void;
+    selectedModel: ModelConfig;
 }
 
 const PHASE_CONFIG = [
@@ -31,7 +32,7 @@ const CATEGORY_STYLES: Record<string, { icon: React.FC<any>, color: string, bg: 
     'Launch': { icon: Rocket, color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20' },
 };
 
-const ActionPlanTab: React.FC<Props> = ({ projectIdea, existingData, onUpdate }) => {
+const ActionPlanTab: React.FC<Props> = ({ projectIdea, existingData, onUpdate, selectedModel }) => {
     const [data, setData] = useState<ActionPlanData | null>(existingData || null);
     const [loading, setLoading] = useState(!existingData);
     const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
@@ -55,7 +56,7 @@ const ActionPlanTab: React.FC<Props> = ({ projectIdea, existingData, onUpdate })
     const handleGenerate = async () => {
         setLoading(true);
         try {
-            const result = await generateActionPlan(projectIdea);
+            const result = await generateActionPlan(projectIdea, selectedModel);
             setData(result);
             onUpdate(result);
             if (result.phases.length > 0) setExpandedPhases(new Set([result.phases[0].id]));
