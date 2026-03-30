@@ -1,0 +1,38 @@
+- generic [ref=e6]:
+  - generic [ref=e8]:
+    - img "Unicorn Studio Scene" [ref=e9]
+    - link "Made with unicorn.studio" [ref=e10] [cursor=pointer]:
+      - /url: https://unicorn.studio?utm_source=public-url
+      - img "Made with unicorn.studio" [ref=e11]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - heading "Welcome Back" [level=1] [ref=e14]
+      - paragraph [ref=e15]: Enter your credentials to access your workspace.
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - button "Sign In" [ref=e18] [cursor=pointer]: Sign In
+        - button "Sign Up" [ref=e20] [cursor=pointer]
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - text: Email Address
+            - generic [ref=e24]:
+              - generic:
+                - img
+              - textbox "name@company.com" [ref=e25]
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]: Password
+              - button "Forgot? use magic link" [ref=e29] [cursor=pointer]
+            - generic [ref=e30]:
+              - generic:
+                - img
+              - textbox "••••••••" [ref=e31]
+              - button [ref=e32] [cursor=pointer]:
+                - img [ref=e33]
+        - button "Sign In" [ref=e36] [cursor=pointer]
+      - generic [ref=e41]: Or continue with
+      - button "Google" [ref=e43] [cursor=pointer]:
+        - img [ref=e44]
+        - text: Google
+    - paragraph [ref=e49]: Protected by reCAPTCHA and subject to the Privacy Policy and Terms of Service.
