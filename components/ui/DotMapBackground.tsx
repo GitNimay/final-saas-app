@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 
-const DotMapBackground: React.FC = () => {
+const DotMapBackground = memo(() => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mouseRef = useRef({ x: -1000, y: -1000 });
 
@@ -149,6 +149,6 @@ const DotMapBackground: React.FC = () => {
     }, []);
 
     return <canvas ref={canvasRef} className="absolute inset-0 z-0 opacity-60 mix-blend-screen pointer-events-none" />;
-};
+});
 
-export default DotMapBackground;
+export default memo(DotMapBackground);
