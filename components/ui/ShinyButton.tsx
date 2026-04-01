@@ -13,7 +13,7 @@ interface ShinyButtonProps extends HTMLMotionProps<"button"> {
     icon?: React.ReactNode;
 }
 
-const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
+const ShinyButton = React.memo(React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
     ({ children, className, icon, ...props }, ref) => {
         return (
             <motion.button
@@ -46,7 +46,7 @@ const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
             </motion.button>
         );
     }
-);
+));
 
 ShinyButton.displayName = "ShinyButton";
 

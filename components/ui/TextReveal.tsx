@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { memo } from 'react';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -13,7 +14,7 @@ interface TextRevealProps {
     highlightWords?: string[];
 }
 
-export default function TextReveal({ text, className, delay = 0, highlightWords = [] }: TextRevealProps) {
+const TextReveal = memo(function TextReveal({ text, className, delay = 0, highlightWords = [] }: TextRevealProps) {
     const words = text.split(" ");
 
     const container = {
@@ -72,4 +73,6 @@ export default function TextReveal({ text, className, delay = 0, highlightWords 
             })}
         </motion.div>
     );
-}
+});
+
+export default memo(TextReveal);

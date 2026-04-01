@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ParticleBackground from '../ui/ParticleBackground';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import {
     ArrowRight, Hexagon, BarChart2, Layers, Map, Terminal,
     CheckCircle2, Play, ChevronRight, Zap, Shield, Globe,
     Layout, Menu, X
 } from 'lucide-react';
+
+const ParticleBackground = lazy(() => import('../ui/ParticleBackground'));
 
 interface Props {
     onLogin: () => void;
@@ -196,7 +197,9 @@ const LandingPage: React.FC<Props> = ({ onLogin, onSignUp }) => {
 
     return (
         <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden">
-            <ParticleBackground />
+            <Suspense fallback={null}>
+                <ParticleBackground />
+            </Suspense>
 
             {/* Navigation */}
             <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/50 border-b border-white/5">

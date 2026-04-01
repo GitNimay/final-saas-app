@@ -1,13 +1,11 @@
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { User, Project, LoadingStep, TabView, Message, KanbanColumn, UserSettings } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan, ModelConfig } from './services/aiService';
 import { saveProject, getProjects, deleteProject, subscribeToProject, subscribeToMessages, getMessages, sendMessage, getUserSettings, saveUserSettings, syncUserProfile } from './services/projectService';
-import ParticleBackground from './components/ui/ParticleBackground';
 import { DottedSurface } from './components/ui/DottedSurface';
-import DotMapBackground from './components/ui/DotMapBackground';
 import ValidationTab from './components/tabs/ValidationTab';
 import BlueprintTab from './components/tabs/BlueprintTab';
 import RoadmapTab from './components/tabs/RoadmapTab';
@@ -29,6 +27,9 @@ import TextReveal from './components/ui/TextReveal';
 import PageTransition from './components/ui/PageTransition';
 import { AnimatePresence, motion } from 'framer-motion';
 import GenerationVisuals from './components/ui/GenerationVisuals';
+
+const ParticleBackground = lazy(() => import('./components/ui/ParticleBackground'));
+const DotMapBackground = lazy(() => import('./components/ui/DotMapBackground'));
 
 const LOADING_MESSAGES = [
     "Orchestrating AI agents...",
@@ -1029,7 +1030,9 @@ const App = () => {
             <div className="flex flex-col items-center justify-center h-screen bg-black text-white relative overflow-hidden font-sans">
 
                 {/* Dot Map Background */}
-                <DotMapBackground />
+                <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+                    <DotMapBackground />
+                </Suspense>
 
                 {/* Main Card */}
                 <div className="relative z-10 flex flex-col items-center w-full max-w-6xl px-4">
@@ -1291,7 +1294,11 @@ const App = () => {
                 </header>
 
                 <div className="flex-1 overflow-y-auto overflow-x-hidden relative p-6 lg:p-10 scroll-smooth bg-white dark:bg-black">
-                    <div className="hidden dark:block"><ParticleBackground /></div>
+                    <div className="hidden dark:block">
+                        <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+                            <ParticleBackground />
+                        </Suspense>
+                    </div>
 
                     <div className="max-w-[1600px] mx-auto">
                         <AnimatePresence mode="wait">
