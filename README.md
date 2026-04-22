@@ -407,4 +407,4 @@ MIT License - See LICENSE file for details
 
 For issues and feature requests, please open a GitHub issue.
 
-<p align="center">Built with 💜 using React & Gemini AI</p>
+<p align="center">Built by Nimesh Kulkarni using React & Gemini AI</p>
