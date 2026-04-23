@@ -247,7 +247,7 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selecte
   // --- RENDER RESULT ---
   if (step === QUESTIONS.length) {
       return (
-        <div className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col animate-fade-in pb-10">
+        <div className="max-w-4xl mx-auto min-h-[calc(100dvh-112px)] sm:h-[calc(100vh-140px)] flex flex-col animate-fade-in pb-6 sm:pb-10">
             {loading ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-zinc-500">
                     <div className="relative w-20 h-20 mb-6">
@@ -260,14 +260,14 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selecte
                 </div>
             ) : (
                 <>
-                   <div className="flex items-center justify-between mb-6 shrink-0">
+                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 shrink-0">
                         <div>
                             <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                                 <Terminal size={20} className="text-emerald-500" /> Builder Prompt Ready
                             </h2>
                             <p className="text-xs text-zinc-500 mt-1">Copy this into Cursor Composer or Windsurf Cascade to build your app.</p>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3">
                             <button 
                                 onClick={reset}
                                 className="px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
@@ -286,7 +286,7 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selecte
 
                    <div className="flex-1 relative bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xl dark:shadow-2xl flex flex-col">
                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
-                       <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                       <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
                            <pre className="whitespace-pre-wrap font-mono text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed selection:bg-emerald-500/30">
                                {prompt}
                            </pre>
@@ -313,10 +313,10 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selecte
     : !!currentSelection;
 
   return (
-    <div className="flex flex-col items-center justify-center h-[calc(100vh-140px)] animate-fade-in max-w-2xl mx-auto w-full px-4">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-112px)] sm:h-[calc(100vh-140px)] animate-fade-in max-w-2xl mx-auto w-full px-1 sm:px-4 py-6 sm:py-0">
         
         {/* Progress Bar */}
-        <div className="w-full h-1 bg-zinc-200 dark:bg-zinc-900 rounded-full mb-12 relative overflow-hidden">
+        <div className="w-full h-1 bg-zinc-200 dark:bg-zinc-900 rounded-full mb-8 sm:mb-12 relative overflow-hidden">
             <div 
                 className="absolute top-0 left-0 h-full bg-indigo-500 transition-all duration-500 ease-out"
                 style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
@@ -325,7 +325,7 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selecte
 
         {/* Question Card */}
         <div className="w-full">
-            <div className="text-center mb-10">
+            <div className="text-center mb-8 sm:mb-10">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 mb-6 shadow-xl shadow-indigo-500/10">
                     <Icon size={24} className="text-indigo-500 dark:text-indigo-400" />
                 </div>
@@ -364,7 +364,7 @@ const BuilderTab: React.FC<Props> = ({ projectIdea, savedData, onUpdate, selecte
                 })}
             </div>
 
-            <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-800/50 pt-6">
+            <div className="flex flex-col-reverse sm:flex-row justify-between sm:items-center gap-3 border-t border-zinc-200 dark:border-zinc-800/50 pt-6">
                 <button 
                     onClick={() => {
                         if (step > 0) {

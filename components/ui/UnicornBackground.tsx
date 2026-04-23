@@ -60,9 +60,9 @@ const UnicornBackground: React.FC<UnicornBackgroundProps> = ({
     return (
         <div
             ref={containerRef}
-            className="fixed inset-0 w-full h-full z-0"
+            className="auth-unicorn fixed inset-0 w-full h-full z-0"
             style={{
-                background: 'radial-gradient(circle at center, #18181b 0%, #000000 100%)'
+                background: 'var(--background)'
             }}
         >
             {/* Unicorn Studio Container - this div will be picked up by the Unicorn Studio script */}
@@ -81,7 +81,7 @@ const UnicornBackground: React.FC<UnicornBackgroundProps> = ({
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 100%)'
+                    background: 'radial-gradient(circle at center, transparent 0%, color-mix(in srgb, var(--background) 40%, transparent) 100%)'
                 }}
             />
         </div>

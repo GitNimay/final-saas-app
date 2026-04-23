@@ -393,12 +393,12 @@ const BlueprintTab: React.FC<Props> = ({ data, isDark = true }) => {
     };
 
     return (
-        <div className="flex h-[calc(100vh-140px)] w-full gap-0 animate-fade-in border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xl bg-white dark:bg-[#050505]">
+        <div className="flex flex-col xl:flex-row h-[calc(100dvh-112px)] sm:h-[calc(100vh-140px)] w-full gap-0 animate-fade-in border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xl bg-white dark:bg-[#050505]">
 
             {/* --- CANVAS --- */}
-            <div className="flex-1 relative flex flex-col" ref={flowRef}>
+            <div className="flex-1 min-h-[420px] xl:min-h-0 relative flex flex-col" ref={flowRef}>
 
-                <div className="absolute top-4 left-4 z-10 flex gap-2">
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 flex gap-2 max-w-[calc(100%-4rem)] overflow-x-auto no-scrollbar">
                     <div className="flex p-1 rounded-lg border shadow-xl bg-white/80 dark:bg-zinc-950/80 border-zinc-200 dark:border-zinc-800 backdrop-blur-md">
                         {diagrams.map((diag: any, idx: number) => {
                             const isActive = activeDiagramIndex === idx;
@@ -421,7 +421,7 @@ const BlueprintTab: React.FC<Props> = ({ data, isDark = true }) => {
                     </div>
                 </div>
 
-                <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex gap-2">
                     <button onClick={() => downloadDiagram('png')} className="p-2 rounded-lg border transition-colors bg-white/80 dark:bg-zinc-950/80 border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white">
                         <FileImage size={14} />
                     </button>
@@ -448,7 +448,7 @@ const BlueprintTab: React.FC<Props> = ({ data, isDark = true }) => {
             </div>
 
             {/* --- SIDEBAR --- */}
-            <div className="w-[300px] border-l flex flex-col shrink-0 bg-white dark:bg-[#09090b] border-zinc-200 dark:border-zinc-800">
+            <div className="w-full xl:w-[300px] max-h-[42dvh] xl:max-h-none border-t xl:border-t-0 xl:border-l flex flex-col shrink-0 bg-white dark:bg-[#09090b] border-zinc-200 dark:border-zinc-800">
 
                 <div className="p-4 border-b flex justify-between items-center border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">System Inspector</span>

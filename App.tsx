@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { User, Project, LoadingStep, TabView, Message, KanbanColumn, UserSettings } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import { generateBlueprint, generateRoadmap, generateTechStack, generateValidation, generateConsultantReply, generateDeepAnalysis, generatePRD, enhancePrompt, generateActionPlan, ModelConfig } from './services/aiService';
 import { saveProject, getProjects, deleteProject, subscribeToProject, subscribeToMessages, getMessages, sendMessage, getUserSettings, saveUserSettings, syncUserProfile } from './services/projectService';
 import { DottedSurface } from './components/ui/DottedSurface';
+import ParticleBackground from './components/ui/ParticleBackground';
+import DotMapBackground from './components/ui/DotMapBackground';
 import ValidationTab from './components/tabs/ValidationTab';
 import BlueprintTab from './components/tabs/BlueprintTab';
 import RoadmapTab from './components/tabs/RoadmapTab';
@@ -28,8 +30,7 @@ import PageTransition from './components/ui/PageTransition';
 import { AnimatePresence, motion } from 'framer-motion';
 import GenerationVisuals from './components/ui/GenerationVisuals';
 
-const ParticleBackground = lazy(() => import('./components/ui/ParticleBackground'));
-const DotMapBackground = lazy(() => import('./components/ui/DotMapBackground'));
+const isDesktopViewport = () => typeof window === 'undefined' || window.innerWidth >= 768;
 
 const LOADING_MESSAGES = [
     "Orchestrating AI agents...",
@@ -71,9 +72,9 @@ const App = () => {
     const [projectsHistory, setProjectsHistory] = useState<Project[]>([]);
     const [loadingStep, setLoadingStep] = useState<LoadingStep>(LoadingStep.IDLE);
     const [activeTab, setActiveTab] = useState<TabView>('validation');
-    const [showHistorySidebar, setShowHistorySidebar] = useState(true);
+    const [showHistorySidebar, setShowHistorySidebar] = useState(() => isDesktopViewport());
     const [chatOpen, setChatOpen] = useState(false);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => !isDesktopViewport());
 
     // Header State
     const [shareOpen, setShareOpen] = useState(false);
@@ -253,6 +254,19 @@ const App = () => {
             root.classList.add('light'); // Optional but explicit
         }
     }, [userSettings.theme]);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(min-width: 768px)');
+        const syncSidebarForViewport = () => {
+            const desktop = mediaQuery.matches;
+            setShowHistorySidebar(desktop);
+            setSidebarCollapsed(!desktop);
+        };
+
+        syncSidebarForViewport();
+        mediaQuery.addEventListener('change', syncSidebarForViewport);
+        return () => mediaQuery.removeEventListener('change', syncSidebarForViewport);
+    }, []);
 
     // URL-based navigation sync - enables browser back/forward buttons
     useEffect(() => {
@@ -623,8 +637,8 @@ const App = () => {
 
     if (authLoading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-black text-white">
-                <Loader2 className="animate-spin text-white" size={32} />
+            <div className="flex h-[100dvh] w-full items-center justify-center bg-background text-foreground">
+                <Loader2 className="animate-spin text-foreground" size={32} />
             </div>
         );
     }
@@ -636,29 +650,8 @@ const App = () => {
     if (!currentProject && loadingStep === LoadingStep.IDLE) {
         return (
             <ReactLenis root>
-                <div className="relative w-full min-h-screen overflow-x-hidden bg-white dark:bg-black flex font-sans text-zinc-900 dark:text-white selection:bg-indigo-500/30 transition-colors duration-300">
-                    {/* ... existing content ... */}
-                    {/* I need to make sure I am wrapping the correct outer div or replacing it to be scrollable if Lenis takes over */}
-                    {/* Lenis typically works on the window/body. If overflow is hidden on h-screen, Lenis might not work if it expects body scroll. */}
-                    {/* The current layout has `overflow-hidden` on the outer div and `overflow-y-auto` on `.custom-scrollbar` sidebar and maybe the main content? */}
-                    {/* Looking at line 636: `flex-1 flex flex-col ...` it doesn't seem to have overflow-y-auto explicitly on the main content area itself, but maybe it relies on body? */}
-                    {/* Line 123 in index.html says `overflow: hidden` on body. */}
-                    {/* If body is hidden, Lenis cannot scroll the body. */}
-                    {/* Detailed check: The sidebar is fixed. The main content is `flex-1`. */}
-                    {/* If the main content is intended to scroll, it needs overflow-y-auto. */}
-                    {/* BUT, the user wants "smooth scrolling". Usually that implies the whole page or the main container. */}
-                    {/* I will assume the main content div (line 636) should be the scroll container or I should let the body scroll. */}
-                    {/* Given the structure, I will wrap the *Application* return with ReactLenis, but I'll need to remove `overflow: hidden` from body if I want global scroll, OR configure Lenis for a specific wrapper. */}
-                    {/* For now, let's wrap the outermost div but change `h-screen overflow-hidden` to `min-h-screen` to allow scrolling if content overflows? */}
-                    {/* Actually, looking at the layout, it seems like a dashboard with fixed sidebar. Smooth scroll on the *main content area* is probably what is desired. */}
-                    {/* I will wrap the Main Content Area (line 636) with a customized Lenis or just ensure it is scrollable. */}
-                    {/* However, `ReactLenis root` implies it takes over the root html scroll. */}
-                    {/* Let's try wrapping the whole return and see. But let's fix the imports first as per this tool call plan. */}
-
-                    {/* Celestial Bloom Shader is now used as the main background */}
-
-
-                    <div className="fixed top-6 right-6 z-50 animate-fade-in delay-100">
+                <div className="instant-app-bg relative w-full min-h-[100dvh] overflow-x-hidden bg-background text-foreground flex font-sans selection:bg-indigo-500/30 transition-colors duration-300">
+                    <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 animate-fade-in delay-100">
                         <button
                             onClick={() => window.open('https://github.com/GitNimay', '_blank')}
                             className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all text-xs font-semibold shadow-xl backdrop-blur-md"
@@ -670,7 +663,7 @@ const App = () => {
 
                     {
                         !showHistorySidebar && (
-                            <div className="fixed top-6 left-6 z-50 animate-fade-in">
+                            <div className="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 animate-fade-in">
                                 <button
                                     onClick={() => setShowHistorySidebar(true)}
                                     className="p-3 rounded-xl bg-white/80 dark:bg-black/40 border border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-600 transition-all backdrop-blur-md shadow-lg"
@@ -687,7 +680,7 @@ const App = () => {
                         onClick={() => setShowHistorySidebar(false)}
                     />
 
-                    <div className={`fixed left-0 top-0 h-full w-72 md:w-80 bg-white/70 dark:bg-black/60 backdrop-blur-2xl border-r border-white/20 dark:border-white/5 p-4 md:p-6 flex flex-col z-40 transition-transform duration-500 shadow-[20px_0_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-none ${showHistorySidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className={`fixed left-0 top-0 h-[100dvh] w-[min(20rem,calc(100vw-2rem))] md:w-80 bg-white/70 dark:bg-black/60 backdrop-blur-2xl border-r border-white/20 dark:border-white/5 p-4 md:p-6 flex flex-col z-40 transition-transform duration-500 shadow-[20px_0_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-none ${showHistorySidebar ? 'translate-x-0' : '-translate-x-full'}`}>
 
                         <div className="mb-6 pl-1 mt-2 flex items-center justify-between">
                             <h2 className="text-zinc-900 dark:text-zinc-100 font-bold text-lg flex items-center gap-2 shadow-black drop-shadow-sm">
@@ -839,7 +832,7 @@ const App = () => {
                         </div>
                     </div>
 
-                    <div className={`flex-1 flex flex-col items-center justify-center p-4 z-10 relative transition-all duration-500 ${showHistorySidebar ? 'md:pl-80' : 'pl-0'}`}>
+                    <div className={`flex-1 min-h-[100dvh] flex flex-col items-center justify-center px-4 py-24 sm:p-4 z-10 relative transition-all duration-500 ${showHistorySidebar ? 'md:pl-80' : 'pl-0'}`}>
                         <DottedSurface isDark={isDarkMode} />
                         <div className="flex flex-col items-center justify-center max-w-2xl w-full px-4 text-center z-10 relative">
                             <TextReveal
@@ -880,13 +873,13 @@ const App = () => {
                                             }
                                         }}
                                         placeholder="Ask anything..."
-                                        className="w-full bg-transparent border-none outline-none text-base text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 py-5 pl-6 pr-32 font-medium resize-none overflow-hidden min-h-[64px] max-h-[200px]"
+                                        className="w-full bg-transparent border-none outline-none text-base text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 pt-5 pb-16 sm:py-5 pl-5 sm:pl-6 pr-5 sm:pr-32 font-medium resize-none overflow-hidden min-h-[112px] sm:min-h-[64px] max-h-[220px]"
                                         autoFocus
                                         rows={1}
                                         style={{ height: 'auto' }}
                                     />
 
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                    <div className="absolute right-2 bottom-2 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 flex items-center gap-2">
                                         <button
                                             onClick={handleEnhance}
                                             disabled={isEnhancing || !ideaInput.trim()}
@@ -904,7 +897,7 @@ const App = () => {
                                         {ideaInput.trim() && (
                                             <button
                                                 onClick={() => handleSpark()}
-                                                className="p-2 rounded-lg bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+                                                className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-zinc-600 transition-colors shadow-lg"
                                             >
                                                 <Send size={16} />
                                             </button>
@@ -970,7 +963,7 @@ const App = () => {
                                 </button>
                             </div>
 
-                            <div className="fixed bottom-6 text-[10px] text-zinc-400 dark:text-zinc-500 animate-fade-in delay-500">
+                            <div className="hidden sm:block fixed bottom-6 text-[10px] text-zinc-400 dark:text-zinc-500 animate-fade-in delay-500">
                                 Unlock new era with SaaS Validator. <span className="underline cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-300">share us</span>
                             </div>
 
@@ -1027,12 +1020,10 @@ const App = () => {
     if (loadingStep !== LoadingStep.IDLE && loadingStep !== LoadingStep.COMPLETE && !currentProject) {
         return (
 
-            <div className="flex flex-col items-center justify-center h-screen bg-black text-white relative overflow-hidden font-sans">
+        <div className="instant-app-bg flex flex-col items-center justify-center h-[100dvh] bg-background text-foreground relative overflow-hidden font-sans">
 
                 {/* Dot Map Background */}
-                <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
-                    <DotMapBackground />
-                </Suspense>
+                <DotMapBackground />
 
                 {/* Main Card */}
                 <div className="relative z-10 flex flex-col items-center w-full max-w-6xl px-4">
@@ -1127,12 +1118,12 @@ const App = () => {
 
 
     return (
-        <div className="flex h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-white overflow-hidden font-sans selection:bg-indigo-500/30">
+        <div className="instant-app-bg flex h-[100dvh] bg-background text-foreground overflow-hidden font-sans selection:bg-indigo-500/30">
 
             {/* Mobile Sidebar Toggle Button */}
             <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="md:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-black/90 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all shadow-lg"
+                className={`md:hidden fixed top-3 left-3 z-40 p-2.5 rounded-xl bg-white/90 dark:bg-black/90 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all shadow-lg ${chatOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
             </button>
@@ -1144,7 +1135,7 @@ const App = () => {
             />
 
             <aside
-                className={`fixed md:relative h-full bg-white dark:bg-black/95 backdrop-blur-xl border-r border-zinc-200 dark:border-white/5 flex flex-col py-6 z-30 shrink-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${sidebarCollapsed ? 'w-20 items-center -translate-x-full md:translate-x-0' : 'w-72 translate-x-0'
+                className={`fixed md:relative h-[100dvh] bg-white dark:bg-black/95 backdrop-blur-xl border-r border-zinc-200 dark:border-white/5 flex flex-col py-4 md:py-6 z-30 shrink-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${sidebarCollapsed ? 'w-20 items-center -translate-x-full md:translate-x-0' : 'w-[min(18rem,calc(100vw-2rem))] md:w-72 translate-x-0'
                     }`}
             >
                 <div className={`px-6 mb-10 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
@@ -1227,15 +1218,26 @@ const App = () => {
                 </div>
             </aside>
 
-            <div className={`flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-black transition-all duration-500 ease-in-out ${chatOpen ? 'mr-0 lg:mr-[400px]' : ''}`}>
+            {!chatOpen && (
+                <button
+                    onClick={() => setChatOpen(true)}
+                    className="md:hidden fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black border border-zinc-200 dark:border-white/10 text-xs font-bold shadow-lg"
+                    aria-label="Open AI Consultant"
+                >
+                    <Bot size={16} />
+                    AI Consultant
+                </button>
+            )}
 
-                <header className="h-20 border-b border-zinc-200 dark:border-white/5 bg-white/60 dark:bg-black/60 backdrop-blur-xl flex items-center justify-between px-8 z-10 shrink-0 sticky top-0 transition-all">
-                    <div className="flex items-center gap-4 animate-fade-in">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-700 dark:text-white font-bold text-sm shadow-inner">
+            <div className={`flex-1 min-w-0 flex flex-col relative overflow-hidden bg-background transition-all duration-500 ease-in-out ${chatOpen ? 'mr-0 lg:mr-[400px]' : ''}`}>
+
+                <header className="min-h-16 sm:h-20 border-b border-zinc-200 dark:border-white/5 bg-white/60 dark:bg-black/60 backdrop-blur-xl flex items-center justify-between gap-3 pl-16 pr-3 py-3 sm:px-8 z-10 shrink-0 sticky top-0 transition-all">
+                    <div className="min-w-0 flex items-center gap-3 sm:gap-4 animate-fade-in">
+                        <div className="hidden sm:flex w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 items-center justify-center text-zinc-700 dark:text-white font-bold text-sm shadow-inner">
                             {getInitials(currentProject?.name || 'Pro Ject')}
                         </div>
-                        <div className="flex flex-col justify-center">
-                            <h1 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100 truncate max-w-[120px] sm:max-w-[200px] md:max-w-md leading-tight">{currentProject?.name}</h1>
+                        <div className="min-w-0 flex flex-col justify-center">
+                            <h1 className="font-bold text-sm sm:text-lg text-zinc-900 dark:text-zinc-100 truncate max-w-[42vw] sm:max-w-[200px] md:max-w-md leading-tight">{currentProject?.name}</h1>
                             <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 <span className="text-xs text-zinc-500 font-medium">Active Session</span>
@@ -1243,7 +1245,7 @@ const App = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 relative animate-fade-in delay-100">
+                    <div className="flex items-center gap-2 sm:gap-3 relative animate-fade-in delay-100">
                         <button onClick={handleDownloadPDF} className="p-2.5 rounded-lg text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all">
                             <Download size={18} />
                         </button>
@@ -1264,7 +1266,7 @@ const App = () => {
                         {shareOpen && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShareOpen(false)}></div>
-                                <div className="absolute top-full right-0 mt-4 w-80 glass rounded-xl z-20 overflow-hidden animate-slide-up origin-top-right p-1 shadow-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900">
+                                <div className="absolute top-full right-0 mt-3 sm:mt-4 w-[calc(100vw-1.5rem)] sm:w-80 glass rounded-xl z-20 overflow-hidden animate-slide-up origin-top-right p-1 shadow-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900">
                                     <div className="p-4">
                                         <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-4">Share Project</p>
                                         <div className="grid grid-cols-4 gap-3 mb-4">
@@ -1293,14 +1295,12 @@ const App = () => {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto overflow-x-hidden relative p-6 lg:p-10 scroll-smooth bg-white dark:bg-black">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden relative p-3 sm:p-6 lg:p-10 scroll-smooth bg-background">
                     <div className="hidden dark:block">
-                        <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
-                            <ParticleBackground />
-                        </Suspense>
+                        <ParticleBackground />
                     </div>
 
-                    <div className="max-w-[1600px] mx-auto">
+                    <div className="w-full max-w-[1600px] mx-auto">
                         <AnimatePresence mode="wait">
                             {activeTab === 'validation' && currentProject?.data.validation && (
                                 <PageTransition key="validation" variant="slideUp">
@@ -1349,10 +1349,10 @@ const App = () => {
 
             {/* --- REDESIGNED AI CONSULTANT SIDEBAR --- */}
             <div
-                className={`fixed top-0 right-0 bottom-0 w-full sm:top-4 sm:right-4 sm:bottom-4 sm:w-[400px] md:w-[450px] bg-white/95 dark:bg-black/80 backdrop-blur-2xl border-0 sm:border border-zinc-200 dark:border-white/10 sm:rounded-3xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 flex flex-col shadow-2xl ${chatOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`fixed top-0 right-0 bottom-0 h-[100dvh] w-full sm:h-auto sm:top-4 sm:right-4 sm:bottom-4 sm:w-[400px] md:w-[450px] max-w-full bg-white/95 dark:bg-black/80 backdrop-blur-2xl border-0 sm:border border-zinc-200 dark:border-white/10 sm:rounded-3xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 flex flex-col shadow-2xl ${chatOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 {/* Header */}
-                <div className="relative z-10 px-6 py-5 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between">
+                <div className="relative z-10 px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="relative">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -1373,9 +1373,9 @@ const App = () => {
                 </div>
 
                 {/* Chat Area */}
-                <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar scroll-smooth bg-zinc-50/50 dark:bg-transparent">
+                <div className="relative z-10 flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 custom-scrollbar scroll-smooth bg-zinc-50/50 dark:bg-transparent">
                     {chatMessages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center px-4">
+                        <div className="min-h-full flex flex-col items-center justify-center text-center px-1 sm:px-4 py-6">
                             <div className="w-16 h-16 rounded-full bg-white dark:bg-white/5 flex items-center justify-center mb-6 ring-1 ring-zinc-200 dark:ring-white/10 shadow-[0_0_30px_-5px_rgba(0,0,0,0.05)] dark:shadow-[0_0_30px_-5px_rgba(255,255,255,0.1)]">
                                 <Sparkles size={24} className="text-indigo-500 dark:text-indigo-400" />
                             </div>
@@ -1405,7 +1405,7 @@ const App = () => {
                                         <Bot size={12} className="text-white" />
                                     </div>
                                 )}
-                                <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${msg.role === 'user'
+                                <div className={`max-w-[92%] sm:max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${msg.role === 'user'
                                     ? 'bg-zinc-900 dark:bg-white text-white dark:text-black font-medium rounded-tr-none'
                                     : 'bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-white/5 text-zinc-700 dark:text-zinc-200 rounded-tl-none backdrop-blur-md'
                                     }`}>
@@ -1430,14 +1430,14 @@ const App = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="relative z-10 p-4 bg-white/50 dark:bg-black/20 backdrop-blur-md border-t border-zinc-100 dark:border-white/5">
+                <div className="relative z-10 p-3 sm:p-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-4 bg-white/50 dark:bg-black/20 backdrop-blur-md border-t border-zinc-100 dark:border-white/5">
                     <div className="relative bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/10 rounded-full p-1 flex items-center shadow-lg transition-all focus-within:ring-1 focus-within:ring-indigo-500/50 focus-within:bg-white dark:focus-within:bg-black focus-within:border-indigo-500/50">
                         <input
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
                             placeholder="Ask follow-up question..."
-                            className="w-full bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 px-4 py-2.5"
+                            className="w-full bg-transparent border-none outline-none text-base sm:text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 px-4 py-2.5"
                         />
                         <button
                             onClick={() => handleChatSend()}

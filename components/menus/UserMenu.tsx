@@ -38,17 +38,17 @@ const UserMenu: React.FC<Props> = ({ user, settings, isOpen, onClose, onOpenSett
   return (
     <div 
       ref={menuRef}
-      className="absolute bottom-20 left-6 w-72 bg-[#18181b] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-50 animate-slide-up origin-bottom-left"
+      className="absolute bottom-20 left-0 sm:left-6 w-[min(18rem,calc(100vw-2rem))] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-slide-up origin-bottom-left"
     >
       {/* Header */}
-      <div className="p-4 border-b border-zinc-800 bg-zinc-900/50">
+      <div className="p-4 border-b border-border bg-muted/70">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white shadow-lg">
             {settings.displayName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 overflow-hidden">
-            <h3 className="text-sm font-bold text-white truncate">{settings.displayName}</h3>
-            <p className="text-[11px] text-zinc-500 truncate">{user.email}</p>
+            <h3 className="text-sm font-bold text-foreground truncate">{settings.displayName}</h3>
+            <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
           </div>
         </div>
       </div>
@@ -60,33 +60,33 @@ const UserMenu: React.FC<Props> = ({ user, settings, isOpen, onClose, onOpenSett
                 onOpenSettings();
                 onClose();
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
          >
             <Settings size={16} className="text-zinc-500" />
             Settings
          </button>
       </div>
 
-      <div className="px-2 py-2 border-t border-zinc-800">
-          <p className="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Theme</p>
-          <div className="grid grid-cols-3 gap-1 bg-zinc-900 p-1 rounded-lg">
+      <div className="px-2 py-2 border-t border-border">
+          <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Theme</p>
+          <div className="grid grid-cols-3 gap-1 bg-muted p-1 rounded-lg">
               <button 
                  onClick={() => onUpdateSettings({ theme: 'light' })}
-                 className={`flex items-center justify-center py-1.5 rounded-md transition-all ${settings.theme === 'light' ? 'bg-zinc-700 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                 className={`flex items-center justify-center py-1.5 rounded-md transition-all ${settings.theme === 'light' ? 'bg-card text-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                  title="Light"
               >
                   <Sun size={14} />
               </button>
               <button 
                  onClick={() => onUpdateSettings({ theme: 'dark' })}
-                 className={`flex items-center justify-center py-1.5 rounded-md transition-all ${settings.theme === 'dark' ? 'bg-zinc-700 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                 className={`flex items-center justify-center py-1.5 rounded-md transition-all ${settings.theme === 'dark' ? 'bg-card text-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                  title="Dark"
               >
                   <Moon size={14} />
               </button>
               <button 
                  onClick={() => onUpdateSettings({ theme: 'system' })}
-                 className={`flex items-center justify-center py-1.5 rounded-md transition-all ${settings.theme === 'system' ? 'bg-zinc-700 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                 className={`flex items-center justify-center py-1.5 rounded-md transition-all ${settings.theme === 'system' ? 'bg-card text-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                  title="System"
               >
                   <Monitor size={14} />
@@ -94,7 +94,7 @@ const UserMenu: React.FC<Props> = ({ user, settings, isOpen, onClose, onOpenSett
           </div>
       </div>
 
-      <div className="p-2 border-t border-zinc-800 space-y-1">
+      <div className="p-2 border-t border-border space-y-1">
          <button 
             onClick={() => {
                 if (onSignOut) onSignOut();

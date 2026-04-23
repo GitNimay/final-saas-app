@@ -84,18 +84,24 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center bg-black overflow-hidden font-sans text-white selection:bg-zinc-800 selection:text-white">
+        <div className="auth-shell relative min-h-[100dvh] w-full flex items-center justify-center bg-background overflow-hidden font-sans text-foreground selection:bg-zinc-800 selection:text-white px-4 py-8 sm:py-10">
             <UnicornBackground />
 
+            <div className="auth-ambient" aria-hidden="true">
+                <div className="auth-orb auth-orb-one" />
+                <div className="auth-orb auth-orb-two" />
+                <div className="auth-grid" />
+            </div>
+
             {/* Vignette & Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80 pointer-events-none" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/20 via-black/80 to-black pointer-events-none" />
+            <div className="auth-vignette-center" />
+            <div className="auth-vignette-bottom" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-[420px] px-4"
+                className="relative z-10 w-full max-w-[420px]"
             >
                 {/* Header */}
                 <div className="text-center mb-8 space-y-2">
@@ -103,7 +109,7 @@ const LoginPage: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="text-3xl font-bold tracking-tight text-white"
+                        className="text-3xl font-bold tracking-tight text-foreground"
                     >
                         {activeTab === 'signin' ? 'Welcome Back' : 'Create Account'}
                     </motion.h1>
@@ -111,7 +117,7 @@ const LoginPage: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="text-zinc-400 text-sm"
+                        className="text-muted-foreground text-sm"
                     >
                         {activeTab === 'signin'
                             ? 'Enter your credentials to access your workspace.'
@@ -120,19 +126,19 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 {/* Card */}
-                <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800/50 rounded-2xl p-6 shadow-2xl relative overflow-hidden ring-1 ring-white/5">
+                <div className="auth-card bg-card/90 backdrop-blur-md border border-border rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden ring-1 ring-zinc-200/50 dark:ring-white/5">
 
                     {/* Tabs */}
-                    <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-950/50 rounded-lg mb-6 border border-zinc-800/50">
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-lg mb-6 border border-border">
                         <button
                             onClick={() => setActiveTab('signin')}
-                            className={`relative py-2 text-sm font-medium rounded-md transition-all duration-300 ${activeTab === 'signin' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`relative py-2 text-sm font-medium rounded-md transition-all duration-300 ${activeTab === 'signin' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             {activeTab === 'signin' && (
                                 <motion.div
                                     layoutId="auth-tab"
-                                    className="absolute inset-0 bg-zinc-800 rounded-md shadow-sm border border-zinc-700/50"
+                                    className="absolute inset-0 bg-card rounded-md shadow-sm border border-border"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -140,13 +146,13 @@ const LoginPage: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('signup')}
-                            className={`relative py-2 text-sm font-medium rounded-md transition-all duration-300 ${activeTab === 'signup' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`relative py-2 text-sm font-medium rounded-md transition-all duration-300 ${activeTab === 'signup' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             {activeTab === 'signup' && (
                                 <motion.div
                                     layoutId="auth-tab"
-                                    className="absolute inset-0 bg-zinc-800 rounded-md shadow-sm border border-zinc-700/50"
+                                    className="absolute inset-0 bg-card rounded-md shadow-sm border border-border"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -167,16 +173,16 @@ const LoginPage: React.FC = () => {
                             <div className="space-y-4">
                                 {/* Email */}
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-400 ml-1">Email Address</label>
+                                    <label className="text-xs font-medium text-muted-foreground ml-1">Email Address</label>
                                     <div className="relative group">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Mail size={16} className="text-zinc-500 group-focus-within:text-zinc-300 transition-colors" />
+                                            <Mail size={16} className="text-muted-foreground group-focus-within:text-foreground transition-colors" />
                                         </div>
                                         <input
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="block w-full h-11 pl-10 pr-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-700 transition-all"
+                                            className="block w-full h-11 pl-10 pr-4 rounded-xl bg-background border border-input text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-all"
                                             placeholder="name@company.com"
                                             required
                                         />
@@ -186,12 +192,12 @@ const LoginPage: React.FC = () => {
                                 {/* Password */}
                                 <div className="space-y-1.5">
                                     <div className="flex items-center justify-between ml-1">
-                                        <label className="text-xs font-medium text-zinc-400">Password</label>
+                                        <label className="text-xs font-medium text-muted-foreground">Password</label>
                                         {activeTab === 'signin' && (
                                             <button
                                                 type="button"
                                                 onClick={handleMagicLink}
-                                                className="text-[10px] text-zinc-500 hover:text-white transition-colors"
+                                                className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                                             >
                                                 Forgot? use magic link
                                             </button>
@@ -199,20 +205,20 @@ const LoginPage: React.FC = () => {
                                     </div>
                                     <div className="relative group">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Lock size={16} className="text-zinc-500 group-focus-within:text-zinc-300 transition-colors" />
+                                            <Lock size={16} className="text-muted-foreground group-focus-within:text-foreground transition-colors" />
                                         </div>
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="block w-full h-11 pl-10 pr-10 rounded-xl bg-zinc-950/50 border border-zinc-800 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-700 transition-all"
-                                            placeholder="••••••••"
+                                            className="block w-full h-11 pl-10 pr-10 rounded-xl bg-background border border-input text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-all"
+                                            placeholder="********"
                                             required
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                                         >
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
@@ -225,7 +231,7 @@ const LoginPage: React.FC = () => {
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
-                                    className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs flex items-center gap-2"
+                                    className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 dark:text-red-400 text-xs flex items-center gap-2"
                                 >
                                     <AlertCircle size={14} />
                                     {authError}
@@ -236,7 +242,7 @@ const LoginPage: React.FC = () => {
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
-                                    className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-xs flex items-center gap-2"
+                                    className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2"
                                 >
                                     <CheckCircle2 size={14} />
                                     {authSuccess}
@@ -247,7 +253,7 @@ const LoginPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-11 bg-white hover:bg-zinc-200 text-black font-semibold rounded-xl transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-white/5"
+                                className="w-full h-11 bg-primary hover:bg-zinc-600 text-primary-foreground font-semibold rounded-xl transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-white/5"
                             >
                                 {loading ? <Loader2 size={18} className="animate-spin" /> : (
                                     activeTab === 'signin' ? 'Sign In' : 'Create Account'
@@ -259,10 +265,10 @@ const LoginPage: React.FC = () => {
                     {/* Divider */}
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-zinc-800"></div>
+                            <div className="w-full border-t border-border"></div>
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-[#121214] px-2 text-zinc-500 font-medium tracking-wide">Or continue with</span>
+                            <span className="bg-card px-2 text-muted-foreground font-medium tracking-wide">Or continue with</span>
                         </div>
                     </div>
 
@@ -271,7 +277,7 @@ const LoginPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleGoogleLogin}
-                            className="h-11 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white text-sm font-medium rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                            className="h-11 bg-secondary hover:bg-accent border border-border text-secondary-foreground text-sm font-medium rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -286,8 +292,8 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 {/* Footer Links */}
-                <p className="text-center mt-8 text-[10px] text-zinc-600">
-                    Protected by reCAPTCHA and subject to the <span className="underline hover:text-zinc-400 cursor-pointer">Privacy Policy</span> and <span className="underline hover:text-zinc-400 cursor-pointer">Terms of Service</span>.
+                <p className="text-center mt-8 text-[10px] text-muted-foreground">
+                    Protected by reCAPTCHA and subject to the <span className="underline hover:text-foreground cursor-pointer">Privacy Policy</span> and <span className="underline hover:text-foreground cursor-pointer">Terms of Service</span>.
                 </p>
             </motion.div>
         </div>

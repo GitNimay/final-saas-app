@@ -53,12 +53,12 @@ const PRDTab: React.FC<Props> = ({ projectIdea, existingPRD, onUpdate, selectedM
   }
 
   return (
-    <AnimatedSection className="max-w-4xl mx-auto pb-10 h-[calc(100vh-140px)] flex flex-col" blur={true} delay={0.1}>
-      <div className="flex items-center justify-between mb-4 shrink-0">
+    <AnimatedSection className="max-w-4xl mx-auto pb-6 sm:pb-10 min-h-[calc(100dvh-112px)] sm:h-[calc(100vh-140px)] flex flex-col" blur={true} delay={0.1}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0">
         <h2 className="text-zinc-800 dark:text-zinc-200 font-bold text-sm uppercase tracking-wider flex items-center gap-2">
           <FileText size={16} className="text-indigo-500 dark:text-indigo-400" /> Product Requirements Document
         </h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={handleGenerate}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 transition-all text-xs font-medium shadow-sm"
@@ -75,7 +75,7 @@ const PRDTab: React.FC<Props> = ({ projectIdea, existingPRD, onUpdate, selectedM
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-xl">
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 sm:p-8 shadow-xl">
         <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-zinc-900 dark:prose-headings:text-white prose-p:text-zinc-600 dark:prose-p:text-zinc-400 prose-strong:text-zinc-900 dark:prose-strong:text-white prose-ul:text-zinc-600 dark:prose-ul:text-zinc-400">
           <ReactMarkdown
             components={{

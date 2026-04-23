@@ -16,9 +16,10 @@ export function DottedSurface({ className = '', isDark = true }: DottedSurfacePr
         if (!containerRef.current) return;
 
         const container = containerRef.current;
+        const isMobile = window.innerWidth < 768;
         const SEPARATION = 80;
-        const AMOUNTX = 60;
-        const AMOUNTY = 40;
+        const AMOUNTX = isMobile ? 32 : 60;
+        const AMOUNTY = isMobile ? 22 : 40;
 
         // Scene setup
         const scene = new THREE.Scene();
@@ -34,9 +35,9 @@ export function DottedSurface({ className = '', isDark = true }: DottedSurfacePr
 
         const renderer = new THREE.WebGLRenderer({
             alpha: true,
-            antialias: true,
+            antialias: !isMobile,
         });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setClearColor(0x000000, 0);
         container.appendChild(renderer.domElement);
@@ -59,7 +60,7 @@ export function DottedSurface({ className = '', isDark = true }: DottedSurfacePr
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
         const material = new THREE.PointsMaterial({
-            size: 4,
+            size: isMobile ? 3 : 4,
             color: isDark ? 0xffffff : 0x333333,
             transparent: true,
             opacity: isDark ? 0.8 : 0.6,
@@ -81,8 +82,10 @@ export function DottedSurface({ className = '', isDark = true }: DottedSurfacePr
             mouseRef.current.isActive = false;
         };
 
-        container.addEventListener('mousemove', handleMouseMove);
-        container.addEventListener('mouseleave', handleMouseLeave);
+        if (!isMobile) {
+            container.addEventListener('mousemove', handleMouseMove);
+            container.addEventListener('mouseleave', handleMouseLeave);
+        }
 
         const animate = () => {
             animationIdRef.current = requestAnimationFrame(animate);

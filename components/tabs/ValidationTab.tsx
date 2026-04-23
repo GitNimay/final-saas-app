@@ -96,16 +96,16 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
         return `https://www.google.com/search?q=${searchQuery}`;
     };
 
-    if (!mounted) return <div className="w-full h-full bg-black"></div>;
+    if (!mounted) return <div className="w-full h-full bg-background"></div>;
 
     return (
-        <div className="w-full max-w-[1800px] mx-auto pb-20 font-sans text-white px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1800px] mx-auto pb-20 font-sans text-foreground px-0 sm:px-2 lg:px-4">
 
             {/* ========== HEADER ========== */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 border-b border-zinc-900 pb-6">
                 <div className="flex items-center gap-4 mb-4 lg:mb-0">
                     <div className="w-12 h-12 bg-white/5 border border-zinc-800 rounded-xl flex items-center justify-center">
-                        <span className="font-bold text-xl text-white">{data.projectTitle?.charAt(0) || 'V'}</span>
+                            <span className="font-bold text-xl text-foreground">{data.projectTitle?.charAt(0) || 'V'}</span>
                     </div>
                     <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -115,7 +115,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                             </span>
                             <span className="text-[10px] text-zinc-500 uppercase tracking-[0.15em] font-medium">Live Analysis</span>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-white">
+                        <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground">
                             {data.projectTitle}
                         </h1>
                     </div>
