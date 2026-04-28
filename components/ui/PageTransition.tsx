@@ -13,29 +13,29 @@ interface PageTransitionProps {
 
 const transitions: Record<TransitionVariant, Variants> = {
     fade: {
-        initial: { opacity: 0, filter: 'blur(8px)' },
-        animate: { opacity: 1, filter: 'blur(0px)' },
-        exit: { opacity: 0, filter: 'blur(4px)' },
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
     },
     slideUp: {
-        initial: { opacity: 0, y: 30, filter: 'blur(10px)' },
-        animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
-        exit: { opacity: 0, y: -20, filter: 'blur(5px)' },
+        initial: { opacity: 0, y: 16 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -10 },
     },
     slideLeft: {
-        initial: { opacity: 0, x: 40, filter: 'blur(10px)' },
-        animate: { opacity: 1, x: 0, filter: 'blur(0px)' },
-        exit: { opacity: 0, x: -30, filter: 'blur(5px)' },
+        initial: { opacity: 0, x: 24 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -16 },
     },
     scale: {
-        initial: { opacity: 0, scale: 0.95, filter: 'blur(8px)' },
-        animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
-        exit: { opacity: 0, scale: 0.98, filter: 'blur(4px)' },
+        initial: { opacity: 0, scale: 0.98 },
+        animate: { opacity: 1, scale: 1 },
+        exit: { opacity: 0, scale: 0.99 },
     },
     blur: {
-        initial: { opacity: 0, filter: 'blur(20px)' },
-        animate: { opacity: 1, filter: 'blur(0px)' },
-        exit: { opacity: 0, filter: 'blur(10px)' },
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
     },
 };
 
@@ -43,7 +43,7 @@ export default function PageTransition({
     children,
     className,
     variant = 'slideUp',
-    duration = 0.5
+    duration = 0.28
 }: PageTransitionProps) {
     return (
         <motion.div
@@ -52,12 +52,11 @@ export default function PageTransition({
             animate="animate"
             exit="exit"
             transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
                 duration,
+                ease: [0.16, 1, 0.3, 1],
             }}
             className={className}
+            style={{ willChange: 'transform, opacity' }}
         >
             {children}
         </motion.div>

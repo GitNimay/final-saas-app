@@ -389,12 +389,50 @@
       /* Firefox */
     }
 
+    /* Ultra-thin Scrollbar */
+    .thin-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+
+    .thin-scrollbar:hover {
+      scrollbar-color: color-mix(in srgb, var(--ring) 40%, transparent) transparent;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar {
+      width: 2px;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 99px;
+      border: none;
+    }
+
+    .thin-scrollbar:hover::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--ring) 40%, transparent);
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: var(--ring);
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
     body {
       background-color: var(--background);
       color: var(--foreground);
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      overscroll-behavior-x: none;
       /* App handles scroll */
       transition: background-color 0.3s ease;
     }
@@ -411,6 +449,54 @@
         linear-gradient(color-mix(in srgb, var(--border) 42%, transparent) 1px, transparent 1px),
         var(--background);
       background-size: auto, 40px 40px, 40px 40px, auto;
+    }
+
+    .effect-orbit-button {
+      isolation: isolate;
+    }
+
+    .effect-orbit-button::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      pointer-events: none;
+      background: conic-gradient(from 0deg,
+          transparent 0deg 276deg,
+          rgba(255, 255, 255, 0.62) 292deg,
+          transparent 314deg 360deg);
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0.72;
+      animation: effectOrbitLine 3.4s linear infinite;
+    }
+
+    @keyframes effectOrbitLine {
+      to {
+        transform: rotate(1turn);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .effect-orbit-button::before {
+        animation: none;
+      }
     }
 
     .auth-shell .auth-unicorn {
@@ -771,9 +857,12 @@
       }
 
       .react-flow,
-      .recharts-responsive-container,
-      .recharts-wrapper {
+      .recharts-responsive-container {
         max-width: 100%;
+      }
+
+      .instant-app-bg {
+        background-size: auto, 28px 28px, 28px 28px, auto;
       }
 
       .prose,

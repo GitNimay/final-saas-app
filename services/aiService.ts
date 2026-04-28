@@ -2,6 +2,22 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { BlueprintData, KanbanBoard, TechStackData, ValidationData, DeepAnalysisData, ActionPlanData } from "../types";
 import { INITIAL_KANBAN_COLUMNS, INITIAL_COLUMN_ORDER } from "../constants";
+import {
+  buildCostAwareSystemInstruction,
+  compactText,
+  getRequestBudget,
+  limitHistoryForCost,
+  RequestBudgetKey,
+  supportsDisabledThinking,
+} from "./tokenBudget";
+import {
+  normalizeActionPlanData,
+  normalizeBlueprintData,
+  normalizeDeepAnalysisData,
+  normalizeRoadmapTasks,
+  normalizeTechStackData,
+  normalizeValidationData,
+} from "./generatedData";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
@@ -47,6 +63,7 @@ const convertSchemaToJsonSchema = (schema: Schema): any => {
       if (s.items) result.items = convert(s.items);
       if (s.description) result.description = s.description;
       if (s.enum) result.enum = s.enum;
+      if (s.required) result.required = s.required;
       return result;
     }
     return s;
@@ -63,37 +80,56 @@ const callAIModel = async (
     schema?: Schema;
     useJsonResponse?: boolean;
     history?: { role: string; content: string }[];
+    budget?: RequestBudgetKey;
   } = {}
 ): Promise<string> => {
   console.log('callAIModel:', modelConfig.id, modelConfig.provider);
   
-  const { systemInstruction, schema, useJsonResponse = false, history } = options;
+  const { systemInstruction, schema, useJsonResponse = false, history, budget = 'default' } = options;
+  const requestBudget = getRequestBudget(budget);
+  const compactContents = compactText(contents, requestBudget.maxInputChars);
+  const compactSystemInstruction = systemInstruction
+    ? compactText(systemInstruction, requestBudget.maxInputChars)
+    : '';
+  const finalSystemInstruction = buildCostAwareSystemInstruction(compactSystemInstruction, useJsonResponse);
+  const limitedHistory = limitHistoryForCost(history, {
+    maxMessages: requestBudget.maxHistoryMessages,
+    maxCharsPerMessage: requestBudget.maxHistoryMessageChars,
+  });
 
   if (modelConfig.provider === 'gemini') {
     const model = modelConfig.id;
-    const config: any = {};
+    const config: any = {
+      maxOutputTokens: requestBudget.maxOutputTokens,
+      temperature: requestBudget.temperature,
+    };
     
     if (useJsonResponse && schema) {
       config.responseMimeType = "application/json";
       config.responseSchema = schema;
     }
-    if (systemInstruction) {
-      config.systemInstruction = contents;
-      contents = '';
+    if (finalSystemInstruction) {
+      config.systemInstruction = finalSystemInstruction;
+    }
+    if (supportsDisabledThinking(model)) {
+      config.thinkingConfig = { thinkingBudget: 0, includeThoughts: false };
     }
 
-    if (history && history.length > 0) {
+    if (limitedHistory.length > 0) {
       const chat = ai.chats.create({
         model,
-        config: { systemInstruction },
-        history: history as any
+        config,
+        history: limitedHistory.map((message) => ({
+          role: message.role === 'assistant' || message.role === 'model' ? 'model' : 'user',
+          parts: [{ text: message.content }],
+        })) as any
       });
-      const result = await chat.sendMessage({ message: contents });
+      const result = await chat.sendMessage({ message: compactContents });
       return result.text;
     } else {
       const response = await ai.models.generateContent({
         model,
-        contents: systemInstruction ? `${systemInstruction}\n\n${contents}` : contents,
+        contents: compactContents,
         config
       });
       return response.text;
@@ -110,27 +146,31 @@ const callAIModel = async (
 
   const messages: any[] = [];
   
-  let finalSystemInstruction = systemInstruction || '';
+  let groqSystemInstruction = finalSystemInstruction;
   
   if (useJsonResponse && schema) {
     const jsonSchema = convertSchemaToJsonSchema(schema);
-    finalSystemInstruction += `\n\nYou MUST output valid JSON adhering exactly to this schema:\n${JSON.stringify(jsonSchema, null, 2)}`;
+    groqSystemInstruction += `\nJSON schema: ${JSON.stringify(jsonSchema)}`;
   }
 
-  if (finalSystemInstruction) {
-    messages.push({ role: 'system', content: finalSystemInstruction });
+  if (groqSystemInstruction) {
+    messages.push({ role: 'system', content: groqSystemInstruction });
   }
 
-  if (history) {
-    messages.push(...history);
+  if (limitedHistory.length > 0) {
+    messages.push(...limitedHistory.map((message) => ({
+      role: message.role === 'assistant' || message.role === 'model' ? 'assistant' : 'user',
+      content: message.content,
+    })));
   }
 
-  messages.push({ role: 'user', content: contents });
+  messages.push({ role: 'user', content: compactContents });
 
   const requestBody: any = {
     model: modelConfig.id,
     messages,
-    temperature: 0.7,
+    temperature: requestBudget.temperature,
+    max_tokens: requestBudget.maxOutputTokens,
   };
 
   if (useJsonResponse) {
@@ -509,10 +549,11 @@ export const generateValidation = async (idea: string, modelConfig: ModelConfig)
   
   const response = await callAIModel(modelConfig, contents, {
     schema: validationSchema,
-    useJsonResponse: true
+    useJsonResponse: true,
+    budget: 'validation'
   });
   
-  return JSON.parse(cleanJson(response));
+  return normalizeValidationData(JSON.parse(cleanJson(response)));
 };
 
 export const generateDeepAnalysis = async (idea: string, modelConfig: ModelConfig): Promise<DeepAnalysisData> => {
@@ -524,10 +565,11 @@ export const generateDeepAnalysis = async (idea: string, modelConfig: ModelConfi
   
   const response = await callAIModel(modelConfig, contents, {
     schema: deepAnalysisSchema,
-    useJsonResponse: true
+    useJsonResponse: true,
+    budget: 'deepAnalysis'
   });
   
-  return JSON.parse(cleanJson(response));
+  return normalizeDeepAnalysisData(JSON.parse(cleanJson(response)));
 };
 
 export const generateActionPlan = async (idea: string, modelConfig: ModelConfig): Promise<ActionPlanData> => {
@@ -537,10 +579,11 @@ export const generateActionPlan = async (idea: string, modelConfig: ModelConfig)
   
   const response = await callAIModel(modelConfig, contents, {
     schema: actionPlanSchema,
-    useJsonResponse: true
+    useJsonResponse: true,
+    budget: 'actionPlan'
   });
   
-  return JSON.parse(cleanJson(response));
+  return normalizeActionPlanData(JSON.parse(cleanJson(response)));
 };
 
 export const generateBlueprint = async (idea: string, modelConfig: ModelConfig): Promise<BlueprintData> => {
@@ -551,26 +594,11 @@ export const generateBlueprint = async (idea: string, modelConfig: ModelConfig):
   
   const response = await callAIModel(modelConfig, contents, {
     schema: blueprintSchema,
-    useJsonResponse: true
+    useJsonResponse: true,
+    budget: 'blueprint'
   });
 
-  const raw: any = JSON.parse(cleanJson(response));
-
-  const diagrams = raw.diagrams.map((d: any, i: number) => ({
-    id: `diag-${i}`,
-    title: d.title,
-    type: d.type,
-    description: d.description,
-    edges: d.edges,
-    nodes: d.nodes.map((n: any) => ({
-      id: n.id,
-      type: d.type === 'database' ? 'databaseNode' : d.type === 'flow' ? 'flowNode' : 'systemNode',
-      position: { x: n.x, y: n.y },
-      data: { label: n.label, iconType: n.type, attributes: n.attributes || [] }
-    }))
-  }));
-
-  return { diagrams };
+  return normalizeBlueprintData(JSON.parse(cleanJson(response)));
 };
 
 export const generateRoadmap = async (idea: string, modelConfig: ModelConfig): Promise<KanbanBoard> => {
@@ -578,13 +606,14 @@ export const generateRoadmap = async (idea: string, modelConfig: ModelConfig): P
   
   const response = await callAIModel(modelConfig, contents, {
     schema: kanbanSchema,
-    useJsonResponse: true
+    useJsonResponse: true,
+    budget: 'roadmap'
   });
 
-  const raw: any = JSON.parse(cleanJson(response));
+  const tasks = normalizeRoadmapTasks(JSON.parse(cleanJson(response)));
   const board = JSON.parse(JSON.stringify(INITIAL_KANBAN_COLUMNS));
 
-  raw.tasks.forEach((task: any, index: number) => {
+  tasks.forEach((task: any, index: number) => {
     const colMap: Record<string, string> = {
       'Backlog': 'column-1',
       'To Do': 'column-2',
@@ -608,23 +637,24 @@ export const generateTechStack = async (idea: string, modelConfig: ModelConfig):
   
   const response = await callAIModel(modelConfig, contents, {
     schema: techStackSchema,
-    useJsonResponse: true
+    useJsonResponse: true,
+    budget: 'techStack'
   });
   
-  return JSON.parse(cleanJson(response));
+  return normalizeTechStackData(JSON.parse(cleanJson(response)));
 };
 
 export const generatePRD = async (idea: string, modelConfig: ModelConfig): Promise<string> => {
   const contents = `Write a professional PRD for: "${idea}". Format: Markdown. Sections: Executive Summary, Problem Statement, Target Audience, Functional Requirements, Non-Functional Requirements, UX/UI Guidelines, Future Scope.`;
   
-  const response = await callAIModel(modelConfig, contents);
+  const response = await callAIModel(modelConfig, contents, { budget: 'prd' });
   return cleanMarkdown(response);
 };
 
 export const generateBuilderPrompt = async (idea: string, quizAnswers: Record<string, string>, modelConfig: ModelConfig): Promise<string> => {
   const contents = `Create a "Mega-Prompt" for AI Coding Assistant to build: "${idea}". Tech: ${JSON.stringify(quizAnswers)}. Structure: Role, Tech Stack, Project Structure, Implementation Plan, Coding Standards.`;
 
-  const response = await callAIModel(modelConfig, contents);
+  const response = await callAIModel(modelConfig, contents, { budget: 'builder' });
   return cleanMarkdown(response);
 };
 
@@ -643,7 +673,8 @@ export const generateConsultantReply = async (
 
   const response = await callAIModel(modelConfig, message, { 
     systemInstruction,
-    history: openAiHistory
+    history: openAiHistory,
+    budget: 'consultant'
   });
   
   return response;
@@ -652,6 +683,6 @@ export const generateConsultantReply = async (
 export const enhancePrompt = async (currentInput: string, modelConfig: ModelConfig): Promise<string> => {
   const contents = `Enhance this SaaS idea: "${currentInput}". Keep under 3 sentences. Make it sound like a solid elevator pitch.`;
   
-  const response = await callAIModel(modelConfig, contents);
+  const response = await callAIModel(modelConfig, contents, { budget: 'enhance' });
   return response.trim();
 };

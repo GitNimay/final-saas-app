@@ -16,10 +16,30 @@ interface Props {
 
 const PIE_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'];
 
+const formatCompactCurrency = (value: number) => {
+  if (value >= 1000) return `$${Math.round(value / 1000)}k`;
+  return `$${value}`;
+};
+
 const DeepAnalysisTab: React.FC<Props> = ({ data }) => {
+  const marketTrendData = data.marketDemand.trendData || [];
+  const projectedMrrData = data.monetization.projectedMRR || [];
+  const hasMarketTrendData = marketTrendData.length > 0;
+  const hasProjectedMrrData = projectedMrrData.length > 0;
+  const cardClass = "min-w-0 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 shadow-xl dark:shadow-none";
+  const chartShellClass = "h-[220px] sm:h-[260px] w-full min-w-0";
+
+  const EmptyChartState = ({ label }: { label: string }) => (
+    <div className="flex h-full min-h-[180px] w-full items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 text-center dark:border-zinc-800 dark:bg-zinc-950/40">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">No chart data available</p>
+        <p className="mt-2 text-xs text-zinc-400">{label}</p>
+      </div>
+    </div>
+  );
   
   return (
-    <div className="flex flex-col gap-8 pb-20 animate-fade-in max-w-full mx-auto px-2">
+    <div className="flex flex-col gap-6 sm:gap-8 pb-20 animate-fade-in max-w-full mx-auto px-0 sm:px-2">
       
       {/* ----------------------------------------------------
           SECTION 1: MARKET DEMAND (Real-time Trends)
@@ -27,39 +47,43 @@ const DeepAnalysisTab: React.FC<Props> = ({ data }) => {
       <section>
           <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="text-violet-500" size={20} />
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">Real-time Market Pulse</h2>
+              <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide leading-tight">Real-time Market Pulse</h2>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Trend Chart */}
-              <div className="lg:col-span-2 p-6 rounded-2xl min-h-[300px] flex flex-col bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 shadow-xl dark:shadow-none">
+              <div className={`${cardClass} lg:col-span-2 p-4 sm:p-6 flex flex-col`}>
                    <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-4">Search Interest (Last 12 Months)</h3>
-                   <div className="flex-1 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={data.marketDemand.trendData}>
-                              <defs>
-                                  <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                                  </linearGradient>
-                              </defs>
-                              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-zinc-200 dark:text-zinc-800" vertical={false} />
-                              <XAxis dataKey="month" stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} dy={10} />
-                              <YAxis stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} />
-                              <Tooltip 
-                                  contentStyle={{ backgroundColor: 'var(--tooltip-bg)', borderColor: 'var(--tooltip-border)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                  itemStyle={{ color: '#8b5cf6' }}
-                              />
-                              <Area type="monotone" dataKey="interest" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorInterest)" />
-                          </AreaChart>
-                      </ResponsiveContainer>
+                   <div className={chartShellClass}>
+                      {hasMarketTrendData ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={marketTrendData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--foreground)" stopOpacity={0.22}/>
+                                        <stop offset="95%" stopColor="var(--foreground)" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-zinc-200 dark:text-zinc-800" vertical={false} />
+                                <XAxis dataKey="month" stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} dy={10} interval="preserveStartEnd" />
+                                <YAxis stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} width={36} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'var(--tooltip-bg)', borderColor: 'var(--tooltip-border)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                    itemStyle={{ color: 'var(--foreground)' }}
+                                />
+                                <Area type="monotone" dataKey="interest" stroke="var(--foreground)" strokeWidth={3} fillOpacity={1} fill="url(#colorInterest)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <EmptyChartState label="Search interest will appear here when trend data is generated." />
+                      )}
                    </div>
               </div>
 
               {/* Audience Segments */}
-              <div className="p-6 rounded-2xl flex flex-col bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 shadow-xl dark:shadow-none">
+              <div className={`${cardClass} p-4 sm:p-6 flex flex-col`}>
                    <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-4">Target Segments</h3>
-                   <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+                   <div className="space-y-3 sm:space-y-4 overflow-y-auto custom-scrollbar sm:pr-2">
                        {data.marketDemand.audienceSegments.map((seg, idx) => (
                            <div key={idx} className="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-violet-500/30 transition-colors">
                                <div className="flex justify-between items-center mb-2">
@@ -127,7 +151,7 @@ const DeepAnalysisTab: React.FC<Props> = ({ data }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               
               {/* Cost Breakdown Pie */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 shadow-xl dark:shadow-none">
+              <div className={`${cardClass} p-4 sm:p-6`}>
                   <div className="flex justify-between items-start mb-4">
                       <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Monthly Infrastructure</h3>
                       <div className="text-xl font-bold text-zinc-900 dark:text-white">${data.feasibility.infraCost}<span className="text-xs text-zinc-500 font-normal">/mo</span></div>
@@ -167,7 +191,7 @@ const DeepAnalysisTab: React.FC<Props> = ({ data }) => {
               </div>
 
               {/* Dev Timeline & Difficulty */}
-              <div className="p-6 rounded-2xl flex flex-col justify-between bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 shadow-xl dark:shadow-none">
+              <div className={`${cardClass} p-4 sm:p-6 flex flex-col justify-between`}>
                   <div>
                       <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-6">Development Estimates</h3>
                       
@@ -277,21 +301,25 @@ const DeepAnalysisTab: React.FC<Props> = ({ data }) => {
           </div>
 
           {/* Projected MRR Chart */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 shadow-xl dark:shadow-none">
+          <div className={`${cardClass} p-4 sm:p-6`}>
                <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-4">Projected MRR Growth (6 Months)</h3>
-               <div className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data.monetization.projectedMRR}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-zinc-200 dark:text-zinc-800" vertical={false} />
-                            <XAxis dataKey="month" stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} dy={10} />
-                            <YAxis stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-                            <Tooltip 
-                                cursor={{fill: 'var(--tooltip-cursor)'}}
-                                contentStyle={{ backgroundColor: 'var(--tooltip-bg)', borderColor: 'var(--tooltip-border)', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                            />
-                            <Bar dataKey="amount" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
-                        </BarChart>
-                    </ResponsiveContainer>
+               <div className={chartShellClass}>
+                {hasProjectedMrrData ? (
+                     <ResponsiveContainer width="100%" height="100%">
+                         <BarChart data={projectedMrrData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-zinc-200 dark:text-zinc-800" vertical={false} />
+                             <XAxis dataKey="month" stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} dy={10} interval="preserveStartEnd" />
+                             <YAxis stroke="currentColor" className="text-zinc-400 dark:text-zinc-500" fontSize={10} tickLine={false} axisLine={false} width={38} tickFormatter={(val) => formatCompactCurrency(Number(val))} />
+                             <Tooltip 
+                                 cursor={{fill: 'var(--tooltip-cursor)'}}
+                                 contentStyle={{ backgroundColor: 'var(--tooltip-bg)', borderColor: 'var(--tooltip-border)', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                             />
+                             <Bar dataKey="amount" fill="var(--foreground)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                         </BarChart>
+                     </ResponsiveContainer>
+                ) : (
+                  <EmptyChartState label="Projected MRR will appear here when monetization data is generated." />
+                )}
                </div>
           </div>
       </section>

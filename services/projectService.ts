@@ -2,6 +2,7 @@
 import { supabase } from './supabaseClient';
 import { Project, Message, UserSettings, User } from '../types';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { normalizeProject, normalizeProjects } from './generatedData';
 
 // Local storage is now strictly a fallback if Supabase creds are missing entirely
 const LOCAL_STORAGE_KEY = 'saas_validator_projects';
@@ -10,7 +11,7 @@ const LOCAL_SETTINGS_KEY = 'saas_validator_settings';
 const getLocalProjects = (): Project[] => {
   try {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    return stored ? normalizeProjects(JSON.parse(stored)) : [];
   } catch (e) {
     console.error("Local storage read error", e);
     return [];
@@ -20,7 +21,8 @@ const getLocalProjects = (): Project[] => {
 const saveLocalProject = (project: Project): Project[] => {
   try {
     const projects = getLocalProjects();
-    const updated = [project, ...projects.filter(p => p.id !== project.id)];
+    const normalizedProject = normalizeProject(project);
+    const updated = [normalizedProject, ...projects.filter(p => p.id !== project.id)];
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
     return updated;
   } catch (e) {
@@ -80,7 +82,7 @@ export const getProjects = async (userId: string): Promise<Project[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as any || [];
+    return normalizeProjects(data as any || []);
   } catch (err) {
     console.warn('Supabase fetch failed, falling back to local:', err);
     return getLocalProjects();
@@ -89,29 +91,30 @@ export const getProjects = async (userId: string): Promise<Project[]> => {
 
 export const saveProject = async (project: Project, userId: string): Promise<Project | null> => {
   // Save locally as backup immediately
-  saveLocalProject(project);
+  const normalizedProject = normalizeProject(project);
+  saveLocalProject(normalizedProject);
 
-  if (!supabase || userId === 'guest' || userId.startsWith('guest-')) return project;
+  if (!supabase || userId === 'guest' || userId.startsWith('guest-')) return normalizedProject;
 
   try {
     const { data, error } = await supabase
       .from('projects')
       .upsert({
-        id: project.id,
+        id: normalizedProject.id,
         user_id: userId,
-        name: project.name,
-        description: project.description,
-        data: project.data, // This JSONB column holds the entire application state
-        created_at: project.created_at
+        name: normalizedProject.name,
+        description: normalizedProject.description,
+        data: normalizedProject.data, // This JSONB column holds the entire application state
+        created_at: normalizedProject.created_at
       })
       .select()
       .single();
 
     if (error) throw error;
-    return data as any;
+    return normalizeProject(data as any);
   } catch (err) {
     console.error('Supabase save failed:', err);
-    return project; // Return the optimistic update
+    return normalizedProject; // Return the optimistic update
   }
 };
 
@@ -227,7 +230,7 @@ export const subscribeToProject = (projectId: string, callback: (payload: any) =
       },
       (payload) => {
         // payload.new contains the updated row
-        callback(payload.new);
+        callback(normalizeProject(payload.new as any));
       }
     )
     .subscribe((status) => {

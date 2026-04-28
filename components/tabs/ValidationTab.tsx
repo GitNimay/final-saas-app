@@ -80,6 +80,9 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
     const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
     const totalExpenses = revenueData.reduce((sum, d) => sum + d.expenses, 0);
     const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalExpenses) / totalRevenue * 100).toFixed(1) : 0;
+    const expenseRatio = totalRevenue > 0 ? Math.min(100, (totalExpenses / totalRevenue) * 100) : 0;
+    const samShare = market.tam > 0 ? Math.min(100, (market.sam / market.tam) * 100) : 0;
+    const somShare = market.tam > 0 ? Math.min(100, (market.som / market.tam) * 100) : 0;
 
     // Risk assessment based on score and SWOT
     const riskScore = Math.max(0, 100 - score - (swot.threats.length * 5) + (swot.strengths.length * 3));
@@ -98,16 +101,19 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
 
     if (!mounted) return <div className="w-full h-full bg-background"></div>;
 
+    const cardClass = "min-w-0 bg-black border border-zinc-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-colors duration-200";
+    const chartCardClass = `${cardClass} col-span-1 sm:col-span-2`;
+
     return (
         <div className="w-full max-w-[1800px] mx-auto pb-20 font-sans text-foreground px-0 sm:px-2 lg:px-4">
 
             {/* ========== HEADER ========== */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 border-b border-zinc-900 pb-6">
-                <div className="flex items-center gap-4 mb-4 lg:mb-0">
-                    <div className="w-12 h-12 bg-white/5 border border-zinc-800 rounded-xl flex items-center justify-center">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-5 sm:mb-8 border-b border-zinc-900 pb-4 sm:pb-6">
+                <div className="min-w-0 flex items-center gap-3 sm:gap-4">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 shrink-0 bg-white/5 border border-zinc-800 rounded-xl flex items-center justify-center">
                             <span className="font-bold text-xl text-foreground">{data.projectTitle?.charAt(0) || 'V'}</span>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -115,7 +121,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                             </span>
                             <span className="text-[10px] text-zinc-500 uppercase tracking-[0.15em] font-medium">Live Analysis</span>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground">
+                        <h1 className="text-xl sm:text-3xl font-medium tracking-tight text-foreground leading-tight break-words">
                             {data.projectTitle}
                         </h1>
                     </div>
@@ -123,10 +129,10 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
             </div>
 
             {/* ========== MAIN GRID ========== */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-5">
 
                 {/* ===== VIABILITY SCORE CARD ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-3`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">Viability</span>
@@ -153,7 +159,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== REVENUE PROJECTION CARD ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-3`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">Projected ARR</span>
@@ -186,7 +192,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== GROWTH RATE CARD ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-3`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">CAGR Growth</span>
@@ -209,7 +215,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== RISK ASSESSMENT CARD (NEW) ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-3`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">Risk Level</span>
@@ -248,10 +254,10 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== MAIN STATISTICS CHART ===== */}
-                <div className="col-span-1 sm:col-span-2 lg:col-span-8 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${chartCardClass} lg:col-span-8`}>
                     <div className="relative z-10">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
-                            <div className="flex items-center gap-3">
+                            <div className="min-w-0 flex flex-wrap items-center gap-2 sm:gap-3">
                                 <h3 className="text-sm font-medium text-white">Financial Projection</h3>
                                 <div className="flex items-center gap-3 text-[10px] text-zinc-600">
                                     <div className="flex items-center gap-1.5">
@@ -279,7 +285,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                             </div>
                         </div>
 
-                        <div className="h-[200px] w-full">
+                        <div className="h-[210px] sm:h-[240px] lg:h-[260px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={revenueData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                                     <defs>
@@ -301,14 +307,14 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== RADAR CHART (NEW) ===== */}
-                <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${chartCardClass} lg:col-span-4`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Multi-Factor Analysis</h3>
                             <Activity size={14} className="text-zinc-600" />
                         </div>
 
-                        <div className="h-[200px] w-full">
+                        <div className="h-[180px] sm:h-[220px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart data={radarData}>
                                     <PolarGrid stroke="#27272a" />
@@ -329,14 +335,14 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== REVENUE VS EXPENSES BAR CHART (NEW) ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-4`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Revenue vs Expenses</h3>
                             <DollarSign size={14} className="text-zinc-600" />
                         </div>
 
-                        <div className="h-[200px] w-full">
+                        <div className="h-[180px] sm:h-[220px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={revenueData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#18181b" />
@@ -360,7 +366,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== PROFIT METRICS (NEW) ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-4 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-4`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Profit Metrics</h3>
@@ -383,7 +389,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                                     <span className="text-sm font-medium text-white">${(totalExpenses / 1000000).toFixed(1)}M</span>
                                 </div>
                                 <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-                                    <div className="h-full bg-zinc-600/60 rounded-full" style={{ width: `${(totalExpenses / totalRevenue) * 100}%` }}></div>
+                                    <div className="h-full bg-zinc-600/60 rounded-full" style={{ width: `${expenseRatio}%` }}></div>
                                 </div>
                             </div>
                             <div className="pt-3 border-t border-zinc-900">
@@ -399,7 +405,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== SWOT GRID (NEW) ===== */}
-                <div className="col-span-1 sm:col-span-2 lg:col-span-6 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-2 lg:col-span-6`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">SWOT Analysis</h3>
@@ -475,7 +481,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== COMPETITORS CARD ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-3`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Competitors</h3>
@@ -510,18 +516,18 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                                     href={getCompetitorUrl(c)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-between p-2.5 bg-zinc-950 rounded-xl border border-zinc-900 hover:border-zinc-700 transition-all group/item cursor-pointer"
+                                    className="flex items-center justify-between gap-3 p-2.5 bg-zinc-950 rounded-xl border border-zinc-900 hover:border-zinc-700 transition-colors group/item cursor-pointer min-w-0"
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 min-w-0">
                                         <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-medium text-white">
                                             {c.name.charAt(0)}
                                         </div>
-                                        <div>
-                                            <div className="text-xs font-medium text-white flex items-center gap-1">
-                                                {c.name}
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-medium text-white flex items-center gap-1 min-w-0">
+                                                <span className="truncate max-w-[52vw] sm:max-w-[9rem]">{c.name}</span>
                                                 <ExternalLink size={8} className="text-zinc-600" />
                                             </div>
-                                            <div className="text-[9px] text-zinc-600">{c.price}</div>
+                                            <div className="text-[9px] text-zinc-600 truncate max-w-[52vw] sm:max-w-[9rem]">{c.price}</div>
                                         </div>
                                     </div>
                                 </a>
@@ -531,7 +537,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== MARKET SIZE CARD ===== */}
-                <div className="col-span-1 sm:col-span-1 lg:col-span-3 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-1 lg:col-span-3`}>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-white">Market Size</h3>
@@ -554,7 +560,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                                     <span className="text-xs font-medium text-white">${market.sam}M</span>
                                 </div>
                                 <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
-                                    <div className="h-full bg-white/30 rounded-full" style={{ width: `${(market.sam / market.tam) * 100}%` }}></div>
+                                    <div className="h-full bg-white/30 rounded-full" style={{ width: `${samShare}%` }}></div>
                                 </div>
                             </div>
                             <div>
@@ -563,7 +569,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                                     <span className="text-xs font-medium text-white">${market.som}M</span>
                                 </div>
                                 <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
-                                    <div className="h-full bg-white/20 rounded-full" style={{ width: `${(market.som / market.tam) * 100}%` }}></div>
+                                    <div className="h-full bg-white/20 rounded-full" style={{ width: `${somShare}%` }}></div>
                                 </div>
                             </div>
                         </div>
@@ -578,21 +584,21 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                 </div>
 
                 {/* ===== SUMMARY BANNER ===== */}
-                <div className="col-span-1 sm:col-span-2 lg:col-span-12 bg-black border border-zinc-900 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-zinc-800 transition-all duration-300">
+                <div className={`${cardClass} col-span-1 sm:col-span-2 lg:col-span-12`}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] to-transparent pointer-events-none"></div>
 
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+                        <div className="min-w-0 flex items-start sm:items-center gap-3 sm:gap-4">
+                            <div className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 shrink-0">
                                 <Sparkles size={18} className="text-zinc-400" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <h3 className="text-base font-medium text-white mb-0.5">AI Analysis Complete</h3>
-                                <p className="text-xs text-zinc-600 max-w-xl">{data.summary?.slice(0, 120)}...</p>
+                                <p className="text-xs text-zinc-600 max-w-xl leading-relaxed break-words">{data.summary?.slice(0, 120)}...</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                             <div className="hidden sm:flex items-center gap-4 text-center">
                                 <div>
                                     <div className="text-xl font-semibold text-white">{score}%</div>
@@ -609,7 +615,7 @@ const ValidationTab: React.FC<Props> = ({ data, isDark = true }) => {
                                     <div className="text-[9px] text-zinc-600 uppercase">Risk</div>
                                 </div>
                             </div>
-                            <button className="px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-all flex items-center gap-2">
+                            <button className="w-full sm:w-auto justify-center px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors flex items-center gap-2">
                                 <Eye size={14} />
                                 Full Report
                             </button>

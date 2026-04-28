@@ -24,6 +24,7 @@ import { useNotification } from './contexts/NotificationContext';
 import { Bot, ChevronRight, LayoutDashboard, Map, Trello, Layers, Settings, LogOut, Loader2, Sparkles, Send, Trash2, History, MessageSquarePlus, Mic, Plus, BarChart2, X, Paperclip, Share2, Copy, Check, Link as LinkIcon, ExternalLink, FileText, Terminal, TrendingUp, Download, PanelLeftClose, PanelLeftOpen, Hexagon, HelpCircle, Twitter, Facebook, Linkedin, Mail, Zap, CheckCircle2, MoreHorizontal, Square, StopCircle, ChevronDown, Lock, Wand2, ArrowRight, Clock, HelpCircle as HelpIcon, AlertCircle, Calendar, GitCompare } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { ReactLenis } from 'lenis/react';
+import { getProjectReportFilename, renderProjectReportPdf } from './services/reportPdf';
 import ShinyButton from './components/ui/ShinyButton';
 import TextReveal from './components/ui/TextReveal';
 import PageTransition from './components/ui/PageTransition';
@@ -75,6 +76,8 @@ const App = () => {
     const [showHistorySidebar, setShowHistorySidebar] = useState(() => isDesktopViewport());
     const [chatOpen, setChatOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => !isDesktopViewport());
+    const [isDashboardMobile, setIsDashboardMobile] = useState(() => !isDesktopViewport());
+    const [showLandingBackgroundEffect, setShowLandingBackgroundEffect] = useState(false);
 
     // Header State
     const [shareOpen, setShareOpen] = useState(false);
@@ -164,6 +167,27 @@ const App = () => {
             setTimeout(() => setIsRefreshing(false), 300);
         }, 200);
     };
+
+    const dashboardNavItems = useMemo(() => [
+        { id: 'validation' as TabView, label: 'Validation', icon: LayoutDashboard },
+        { id: 'deepAnalysis' as TabView, label: 'Deep Insights', icon: TrendingUp },
+        { id: 'blueprint' as TabView, label: 'Blueprint', icon: Map },
+        { id: 'roadmap' as TabView, label: 'Roadmap', icon: Trello },
+        { id: 'actionPlan' as TabView, label: '30-Day Plan', icon: Calendar },
+        { id: 'techstack' as TabView, label: 'Tech Stack', icon: Layers },
+        { id: 'prd' as TabView, label: 'PRD Docs', icon: FileText },
+        { id: 'builder' as TabView, label: 'AI Builder', icon: Terminal },
+    ], []);
+
+    const dashboardTransitionVariant = isDashboardMobile ? 'fade' : 'slideUp';
+
+    const handleSelectDashboardTab = useCallback((tab: TabView) => {
+        setActiveTab(tab);
+        setChatOpen(false);
+        if (!isDesktopViewport()) {
+            setSidebarCollapsed(true);
+        }
+    }, []);
 
     // Derived Theme State for passing to components that need JS-level theme awareness (e.g. Charts)
     const isDarkMode = userSettings.theme === 'dark' || (userSettings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -259,6 +283,7 @@ const App = () => {
         const mediaQuery = window.matchMedia('(min-width: 768px)');
         const syncSidebarForViewport = () => {
             const desktop = mediaQuery.matches;
+            setIsDashboardMobile(!desktop);
             setShowHistorySidebar(desktop);
             setSidebarCollapsed(!desktop);
         };
@@ -558,7 +583,7 @@ const App = () => {
             Validation Summary: ${currentProject.data.validation?.summary || 'N/A'}
             Viability Score: ${currentProject.data.validation?.viabilityScore || 'N/A'}
             Key Market Stats: TAM ${currentProject.data.validation?.marketStats?.tam}M
-            Tech Stack: ${currentProject.data.techStack?.technologies.map(t => t.name).join(', ') || 'N/A'}
+            Tech Stack: ${currentProject.data.techStack?.technologies?.map(t => t.name).join(', ') || 'N/A'}
         `;
             const reply = await generateConsultantReply(context, formattedHistory, text, selectedModel);
             await sendMessage(currentProject.id, 'model', reply);
@@ -596,36 +621,9 @@ const App = () => {
 
     const handleDownloadPDF = () => {
         if (!currentProject) return;
-        const doc = new jsPDF();
-        let y = 20;
-        const margin = 20;
-        const lineHeight = 7;
-        const pageHeight = doc.internal.pageSize.height;
-
-        const addText = (text: string, fontSize = 12, isBold = false) => {
-            doc.setFontSize(fontSize);
-            doc.setFont("helvetica", isBold ? "bold" : "normal");
-            const splitText = doc.splitTextToSize(text, 170);
-            if (y + splitText.length * lineHeight > pageHeight - margin) {
-                doc.addPage(); y = margin;
-            }
-            doc.text(splitText, margin, y);
-            y += splitText.length * lineHeight + 2;
-        };
-
-        addText(`Project Report: ${currentProject.name}`, 22, true);
-        y += 10;
-        addText(currentProject.description, 12, false);
-        y += 15;
-
-        if (currentProject.data.validation) {
-            addText("1. Validation & Market Analysis", 16, true);
-            y += 5;
-            addText(`Viability Score: ${currentProject.data.validation.viabilityScore}/100`, 12, true);
-            addText(`Summary: ${currentProject.data.validation.summary}`);
-        }
-
-        doc.save(`${currentProject.name.replace(/\s+/g, '_')}_Report.pdf`);
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        renderProjectReportPdf(doc, currentProject);
+        doc.save(getProjectReportFilename(currentProject));
     };
 
     const getInitials = (name: string) => name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
@@ -651,13 +649,27 @@ const App = () => {
         return (
             <ReactLenis root>
                 <div className="instant-app-bg relative w-full min-h-[100dvh] overflow-x-hidden bg-background text-foreground flex font-sans selection:bg-indigo-500/30 transition-colors duration-300">
-                    <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 animate-fade-in delay-100">
+                    <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 animate-fade-in delay-100">
                         <button
                             onClick={() => window.open('https://github.com/GitNimay', '_blank')}
                             className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all text-xs font-semibold shadow-xl backdrop-blur-md"
                         >
                             <Sparkles size={14} className="text-zinc-400 group-hover:text-yellow-400 transition-colors" />
                             <span>Support</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowLandingBackgroundEffect((isShown) => !isShown)}
+                            aria-pressed={showLandingBackgroundEffect}
+                            aria-label={showLandingBackgroundEffect ? 'Hide background effect' : 'Show background effect'}
+                            title={showLandingBackgroundEffect ? 'Hide background effect' : 'Show background effect'}
+                            className={`effect-orbit-button group relative flex min-w-10 sm:min-w-[6.5rem] items-center justify-center gap-2 overflow-hidden px-3 py-2 rounded-lg border text-xs font-semibold shadow-xl backdrop-blur-md transition-all ${showLandingBackgroundEffect
+                                ? 'bg-zinc-900 text-white border-zinc-800 dark:bg-white dark:text-black dark:border-white'
+                                : 'bg-white dark:bg-zinc-900/30 border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
+                                }`}
+                        >
+                            <Zap size={14} className={showLandingBackgroundEffect ? 'text-white dark:text-black' : 'text-zinc-400 group-hover:text-yellow-400 transition-colors'} />
+                            <span className="hidden sm:inline">{showLandingBackgroundEffect ? 'Effect On' : 'Effect Off'}</span>
                         </button>
                     </div>
 
@@ -833,7 +845,20 @@ const App = () => {
                     </div>
 
                     <div className={`flex-1 min-h-[100dvh] flex flex-col items-center justify-center px-4 py-24 sm:p-4 z-10 relative transition-all duration-500 ${showHistorySidebar ? 'md:pl-80' : 'pl-0'}`}>
-                        <DottedSurface isDark={isDarkMode} />
+                        <AnimatePresence>
+                            {showLandingBackgroundEffect && (
+                                <motion.div
+                                    key="landing-background-effect"
+                                    className="absolute inset-0 z-0"
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                >
+                                    <DottedSurface isDark={isDarkMode} />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                         <div className="flex flex-col items-center justify-center max-w-2xl w-full px-4 text-center z-10 relative">
                             <TextReveal
                                 text={`Good to See You, ${userSettings.displayName.split(' ')[0]}!`}
@@ -1123,7 +1148,8 @@ const App = () => {
             {/* Mobile Sidebar Toggle Button */}
             <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className={`md:hidden fixed top-3 left-3 z-40 p-2.5 rounded-xl bg-white/90 dark:bg-black/90 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all shadow-lg ${chatOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                aria-label={sidebarCollapsed ? 'Open dashboard menu' : 'Close dashboard menu'}
+                className={`md:hidden fixed top-[calc(0.75rem+env(safe-area-inset-top))] left-3 z-40 p-2.5 rounded-xl bg-white/90 dark:bg-black/90 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all shadow-lg ${chatOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
             </button>
@@ -1135,7 +1161,7 @@ const App = () => {
             />
 
             <aside
-                className={`fixed md:relative h-[100dvh] bg-white dark:bg-black/95 backdrop-blur-xl border-r border-zinc-200 dark:border-white/5 flex flex-col py-4 md:py-6 z-30 shrink-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${sidebarCollapsed ? 'w-20 items-center -translate-x-full md:translate-x-0' : 'w-[min(18rem,calc(100vw-2rem))] md:w-72 translate-x-0'
+                className={`fixed md:relative h-[100dvh] max-w-[calc(100vw-1rem)] bg-white dark:bg-black/95 backdrop-blur-xl border-r border-zinc-200 dark:border-white/5 flex flex-col py-4 md:py-6 z-30 shrink-0 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform ${sidebarCollapsed ? 'w-20 items-center -translate-x-full md:translate-x-0' : 'w-[min(18rem,calc(100vw-2rem))] md:w-72 translate-x-0'
                     }`}
             >
                 <div className={`px-6 mb-10 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
@@ -1158,22 +1184,13 @@ const App = () => {
                     </button>
                 )}
 
-                <nav className="flex-1 space-y-1.5 px-3">
-                    {[
-                        { id: 'validation', label: 'Validation', icon: LayoutDashboard },
-                        { id: 'deepAnalysis', label: 'Deep Insights', icon: TrendingUp },
-                        { id: 'blueprint', label: 'Blueprint', icon: Map },
-                        { id: 'roadmap', label: 'Roadmap', icon: Trello },
-                        { id: 'actionPlan', label: '30-Day Plan', icon: Calendar },
-                        { id: 'techstack', label: 'Tech Stack', icon: Layers },
-                        { id: 'prd', label: 'PRD Docs', icon: FileText },
-                        { id: 'builder', label: 'AI Builder', icon: Terminal },
-                    ].map(item => {
+                <nav className="flex-1 min-h-0 overflow-y-auto thin-scrollbar space-y-1.5 px-3">
+                    {dashboardNavItems.map(item => {
                         const isActive = activeTab === item.id;
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setActiveTab(item.id as TabView)}
+                                onClick={() => handleSelectDashboardTab(item.id)}
                                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 relative group overflow-hidden ${isActive
                                     ? 'text-zinc-900 dark:text-white bg-zinc-200 dark:bg-white/5'
                                     : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
@@ -1205,7 +1222,7 @@ const App = () => {
                     </button>
                 </nav>
 
-                <div className="px-3 pt-4 mt-auto">
+                <div className="px-3 pt-4 mt-auto shrink-0">
                     <div className="my-4 border-t border-zinc-200 dark:border-white/5 mx-2"></div>
                     <button
                         onClick={handleExitProject}
@@ -1229,9 +1246,9 @@ const App = () => {
                 </button>
             )}
 
-            <div className={`flex-1 min-w-0 flex flex-col relative overflow-hidden bg-background transition-all duration-500 ease-in-out ${chatOpen ? 'mr-0 lg:mr-[400px]' : ''}`}>
+            <div className={`flex-1 min-w-0 flex flex-col relative overflow-hidden bg-background transition-all duration-300 ease-in-out ${chatOpen ? 'mr-0 lg:mr-[400px]' : ''}`}>
 
-                <header className="min-h-16 sm:h-20 border-b border-zinc-200 dark:border-white/5 bg-white/60 dark:bg-black/60 backdrop-blur-xl flex items-center justify-between gap-3 pl-16 pr-3 py-3 sm:px-8 z-10 shrink-0 sticky top-0 transition-all">
+                <header className="min-h-16 sm:h-20 border-b border-zinc-200 dark:border-white/5 bg-white/60 dark:bg-black/60 backdrop-blur-xl flex items-center justify-between gap-3 pl-16 pr-3 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3 sm:px-8 sm:py-3 z-10 shrink-0 sticky top-0 transition-all">
                     <div className="min-w-0 flex items-center gap-3 sm:gap-4 animate-fade-in">
                         <div className="hidden sm:flex w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 items-center justify-center text-zinc-700 dark:text-white font-bold text-sm shadow-inner">
                             {getInitials(currentProject?.name || 'Pro Ject')}
@@ -1246,7 +1263,12 @@ const App = () => {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3 relative animate-fade-in delay-100">
-                        <button onClick={handleDownloadPDF} className="p-2.5 rounded-lg text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all">
+                        <button
+                            onClick={handleDownloadPDF}
+                            aria-label="Download full project report PDF"
+                            title="Download full project report PDF"
+                            className="p-2.5 rounded-lg text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all"
+                        >
                             <Download size={18} />
                         </button>
                         <div className="h-6 w-px bg-zinc-200 dark:bg-white/10"></div>
@@ -1295,7 +1317,30 @@ const App = () => {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto overflow-x-hidden relative p-3 sm:p-6 lg:p-10 scroll-smooth bg-background">
+                <div className="md:hidden shrink-0 border-b border-zinc-200 dark:border-white/5 bg-white/75 dark:bg-black/70 backdrop-blur-xl z-10">
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar px-3 py-2">
+                        {dashboardNavItems.map(item => {
+                            const isActive = activeTab === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => handleSelectDashboardTab(item.id)}
+                                    aria-label={`Open ${item.label} tab`}
+                                    className={`min-w-[4.75rem] flex flex-col items-center justify-center gap-1 rounded-xl border px-3 py-2 text-[10px] font-semibold transition-colors ${isActive
+                                        ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-black'
+                                        : 'border-zinc-200 bg-white/70 text-zinc-500 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400'
+                                        }`}
+                                >
+                                    <item.icon size={16} />
+                                    <span className="max-w-[4.5rem] truncate">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain relative px-3 pt-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:p-6 lg:p-8 xl:p-10 scroll-smooth bg-background">
                     <div className="hidden dark:block">
                         <ParticleBackground />
                     </div>
@@ -1303,42 +1348,42 @@ const App = () => {
                     <div className="w-full max-w-[1600px] mx-auto">
                         <AnimatePresence mode="wait">
                             {activeTab === 'validation' && currentProject?.data.validation && (
-                                <PageTransition key="validation" variant="slideUp">
+                                <PageTransition key="validation" variant={dashboardTransitionVariant}>
                                     <ValidationTab data={currentProject.data.validation} isDark={isDarkMode} />
                                 </PageTransition>
                             )}
                             {activeTab === 'deepAnalysis' && currentProject?.data.deepAnalysis && (
-                                <PageTransition key="deepAnalysis" variant="slideUp">
+                                <PageTransition key="deepAnalysis" variant={dashboardTransitionVariant}>
                                     <DeepAnalysisTab data={currentProject.data.deepAnalysis} />
                                 </PageTransition>
                             )}
                             {activeTab === 'blueprint' && currentProject?.data.blueprint && (
-                                <PageTransition key="blueprint" variant="slideUp">
+                                <PageTransition key="blueprint" variant={dashboardTransitionVariant}>
                                     <BlueprintTab data={currentProject.data.blueprint} isDark={isDarkMode} />
                                 </PageTransition>
                             )}
                             {activeTab === 'roadmap' && currentProject?.data.roadmap && (
-                                <PageTransition key="roadmap" variant="slideUp">
+                                <PageTransition key="roadmap" variant={dashboardTransitionVariant}>
                                     <RoadmapTab data={currentProject.data.roadmap} onUpdate={(newData) => updateProjectData('roadmap', newData)} />
                                 </PageTransition>
                             )}
                             {activeTab === 'actionPlan' && currentProject && (
-                                <PageTransition key="actionPlan" variant="slideUp">
+                                <PageTransition key="actionPlan" variant={dashboardTransitionVariant}>
                                     <ActionPlanTab projectIdea={currentProject.description} existingData={currentProject.data.actionPlan} onUpdate={(data) => updateProjectData('actionPlan', data)} selectedModel={selectedModel} />
                                 </PageTransition>
                             )}
                             {activeTab === 'techstack' && currentProject?.data.techStack && (
-                                <PageTransition key="techstack" variant="slideUp">
+                                <PageTransition key="techstack" variant={dashboardTransitionVariant}>
                                     <TechStackTab data={currentProject.data.techStack} />
                                 </PageTransition>
                             )}
                             {activeTab === 'prd' && currentProject && (
-                                <PageTransition key="prd" variant="slideUp">
+                                <PageTransition key="prd" variant={dashboardTransitionVariant}>
                                     <PRDTab projectIdea={currentProject.description} existingPRD={currentProject.data.prd} onUpdate={(prd) => updateProjectData('prd', prd)} selectedModel={selectedModel} />
                                 </PageTransition>
                             )}
                             {activeTab === 'builder' && currentProject && (
-                                <PageTransition key="builder" variant="slideUp">
+                                <PageTransition key="builder" variant={dashboardTransitionVariant}>
                                     <BuilderTab projectIdea={currentProject.description} savedData={currentProject.data.builder} onUpdate={(data) => updateProjectData('builder', data)} selectedModel={selectedModel} />
                                 </PageTransition>
                             )}
